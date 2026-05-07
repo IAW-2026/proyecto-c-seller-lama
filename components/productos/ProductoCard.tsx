@@ -6,27 +6,7 @@ import type { Producto } from '@/types';
 interface ProductoCardProps {
   producto: Producto & {
     categoria_nombre: string;
-    rating: number;
-    reviews: number;
   };
-}
-
-function RatingStars({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      <div className="flex gap-0.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <span
-            key={star}
-            className={star <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-300'}
-          >
-            ★
-          </span>
-        ))}
-      </div>
-      <span className="text-sm font-medium text-slate-900">{rating}</span>
-    </div>
-  );
 }
 
 export function ProductoCard({ producto }: ProductoCardProps) {
@@ -72,12 +52,6 @@ export function ProductoCard({ producto }: ProductoCardProps) {
           <h3 className="text-sm font-bold text-slate-900 line-clamp-2 mt-1 mb-3">
             {producto.titulo}
           </h3>
-
-          {/* Rating */}
-          <div className="mb-3">
-            <RatingStars rating={producto.rating} />
-            <p className="text-xs text-slate-500 mt-1">{producto.reviews} reseñas</p>
-          </div>
 
           {/* Precio */}
           <div className="pt-3 border-t border-slate-100">
