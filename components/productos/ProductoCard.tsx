@@ -10,7 +10,7 @@ interface ProductoCardProps {
 }
 
 export function ProductoCard({ producto }: ProductoCardProps) {
-  const imagenPrincipal = producto.imagenes[0] || '';
+  const imagenPrincipal = (producto.imagenes && producto.imagenes[0]) || '';
   const isVendido = producto.estado_publicacion === 'vendida';
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -43,10 +43,19 @@ export function ProductoCard({ producto }: ProductoCardProps) {
 
         {/* Contenido */}
         <div className="p-4">
-          {/* Categoría */}
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-            {producto.categoria_nombre}
-          </p>
+          {/* Estado y Categoría */}
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+              {producto.categoria_nombre}
+            </p>
+            <span className={`text-xs font-semibold px-2 py-1 rounded ${
+              producto.estado_publicacion === 'activa' 
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-red-100 text-red-700'
+            }`}>
+              {producto.estado_publicacion === 'activa' ? 'Activo' : 'Vendido'}
+            </span>
+          </div>
 
           {/* Título */}
           <h3 className="text-sm font-bold text-slate-900 line-clamp-2 mt-1 mb-3">

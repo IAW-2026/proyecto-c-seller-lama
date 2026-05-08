@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { PageContainer } from '@/components/ui/PageContainer';
+
+const PRIMARY_COLOR = '#515922';
 
 export default function Home() {
   // TODO: Cuando Clerk esté configurado, esta lógica debería ser:
@@ -7,105 +10,96 @@ export default function Home() {
   // }
   
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-amber-50">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-8 py-6">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold" style={{ color: '#515922' }}>
+      <header className="bg-amber-50 border-b border-slate-200">
+        <PageContainer>
+          <div className="flex items-center justify-between py-6">
+            <h1 className="text-2xl font-bold" style={{ color: PRIMARY_COLOR }}>
               LAMA seller app
             </h1>
           </div>
-        </div>
+        </PageContainer>
       </header>
 
-      {/* Hero section */}
-      <div className="max-w-6xl mx-auto px-8 py-20">
-        <div className="mb-16">
-          <h1 className="text-5xl font-bold mb-4" style={{ color: '#515922' }}>
-            Bienvenido a LAMA Seller
-          </h1>
-          <p className="text-xl text-slate-600 mb-2">
-            Panel de gestión para vendedores de ropa usada y vintage
-          </p>
-          <p className="text-slate-600">
-            Administra tu catálogo, visualiza ventas y gestiona tu inventario desde un único lugar
-          </p>
-        </div>
+      {/* Contenido principal */}
+      <PageContainer>
+        <div className="py-12">
+          {/* Título */}
+          <div className="mb-12">
+            <h2 className="text-4xl font-bold mb-2" style={{ color: PRIMARY_COLOR }}>
+              Inicio
+            </h2>
+            <p className="text-slate-600">
+              Accede a tu panel de vendedor o administrador
+            </p>
+          </div>
 
-        {/* Grid de opciones */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Dashboard */}
-          <Link href="/dashboard">
-            <div 
-              className="bg-white border-2 border-slate-200 rounded-lg p-8 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-slate-900 hover:bg-slate-50 h-full flex flex-col justify-between"
-            >
-              <div>
-                <div 
-                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-2xl mb-4"
-                  style={{ backgroundColor: '#515922' }}
-                >
-                  📊
+          {/* Grid de opciones */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {/* Dashboard */}
+            <Link href="/dashboard">
+              <div 
+                className="bg-white border-2 rounded-lg p-8 cursor-pointer transition-all duration-300 hover:shadow-lg h-full flex flex-col justify-between"
+                style={{ borderColor: PRIMARY_COLOR }}
+              >
+                <div>
+                  <h2 className="text-2xl font-bold mb-2" style={{ color: PRIMARY_COLOR }}>
+                    Dashboard
+                  </h2>
+                  <p className="text-slate-600">
+                    Accede a tu panel de vendedor. Visualiza tus productos, órdenes y estadísticas
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Dashboard</h2>
-                <p className="text-slate-600">
-                  Accede a tu panel de vendedor. Visualiza tus productos, órdenes y estadísticas
-                </p>
               </div>
-            </div>
-          </Link>
+            </Link>
 
-          {/* Productos */}
-          <Link href="/productos">
-            <div 
-              className="bg-white border-2 border-slate-200 rounded-lg p-8 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-slate-900 hover:bg-slate-50 h-full flex flex-col justify-between"
-            >
-              <div>
-                <div 
-                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-2xl mb-4"
-                  style={{ backgroundColor: '#515922' }}
-                >
-                  📦
+            {/* Productos */}
+            <Link href="/productos">
+              <div 
+                className="bg-white border-2 rounded-lg p-8 cursor-pointer transition-all duration-300 hover:shadow-lg h-full flex flex-col justify-between"
+                style={{ borderColor: PRIMARY_COLOR }}
+              >
+                <div>
+                  <h2 className="text-2xl font-bold mb-2" style={{ color: PRIMARY_COLOR }}>
+                    Productos
+                  </h2>
+                  <p className="text-slate-600">
+                    Gestiona tu catálogo de productos. Crea, edita y visualiza tu inventario
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Productos</h2>
-                <p className="text-slate-600">
-                  Gestiona tu catálogo de productos. Crea, edita y visualiza tu inventario
-                </p>
               </div>
-            </div>
-          </Link>
+            </Link>
 
-          {/* Admin Panel */}
-          <Link href="/admin">
-            <div 
-              className="bg-white border-2 border-slate-200 rounded-lg p-8 cursor-pointer transition-all duration-300 hover:shadow-lg hover:border-slate-900 hover:bg-slate-50 h-full flex flex-col justify-between"
-            >
-              <div>
-                <div 
-                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white text-2xl mb-4"
-                  style={{ backgroundColor: '#515922' }}
-                >
-                  ⚙️
+            {/* Admin Panel */}
+            <Link href="/admin">
+              <div 
+                className="bg-white border-2 rounded-lg p-8 cursor-pointer transition-all duration-300 hover:shadow-lg h-full flex flex-col justify-between"
+                style={{ borderColor: PRIMARY_COLOR }}
+              >
+                <div>
+                  <h2 className="text-2xl font-bold mb-2" style={{ color: PRIMARY_COLOR }}>
+                    Panel Admin
+                  </h2>
+                  <p className="text-slate-600">
+                    Visualiza estadísticas generales del sistema (vendedores, productos, órdenes)
+                  </p>
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Panel Admin</h2>
-                <p className="text-slate-600">
-                  Visualiza estadísticas generales del sistema (vendedores, productos, órdenes)
-                </p>
               </div>
-            </div>
-          </Link>
-        </div>
+            </Link>
+          </div>
 
-        {/* Info section */}
-        <div className="mt-16 bg-slate-50 border-l-4 rounded-lg p-8" style={{ borderColor: '#515922' }}>
-          <h3 className="text-lg font-bold mb-2" style={{ color: '#515922' }}>
-            📝 Nota de desarrollo
-          </h3>
-          <p className="text-slate-600 text-sm">
-            Este sitio está en desarrollo. Próximamente se agregará autenticación con Clerk y protección de rutas por roles (seller, admin).
-          </p>
+          {/* Info section */}
+          <div className="bg-slate-50 border-l-4 rounded-lg p-8" style={{ borderColor: PRIMARY_COLOR }}>
+            <h3 className="text-lg font-bold mb-2" style={{ color: PRIMARY_COLOR }}>
+              Nota de desarrollo
+            </h3>
+            <p className="text-slate-600 text-sm">
+              Este sitio está en desarrollo. Próximamente se agregará autenticación con Clerk y protección de rutas por roles (seller, admin).
+            </p>
+          </div>
         </div>
-      </div>
+      </PageContainer>
     </main>
   );
 }

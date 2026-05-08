@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { Producto, Orden, Vendedor } from '@/types';
-import { StatCard } from '@/components/admin/StatCard';
+import { StatCard } from '@/components/ui/StatCard';
 import { VendedoresTable } from '@/components/admin/VendedoresTable';
 import { ProductosTable } from '@/components/admin/ProductosTable';
 import { OrdenesTable } from '@/components/admin/OrdenesTable';
+import { PageContainer } from '@/components/ui/PageContainer';
 
 // TODO: Proteger esta ruta con middleware de Clerk (solo admin)
 // Por ahora es accesible sin autenticación (solo para desarrollo)
@@ -37,40 +38,29 @@ export default async function AdminPage() {
 
   if (errorVendedores || errorProductos || errorOrdenes) {
     return (
-      <main className="min-h-screen bg-white">
-        <div className="max-w-6xl mx-auto px-8 py-12">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+      <main className="min-h-screen bg-amber-50">
+        <PageContainer>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mt-8">
             Error al cargar datos: {errorVendedores?.message || errorProductos?.message || errorOrdenes?.message}
           </div>
-        </div>
+        </PageContainer>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-amber-50">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div 
-                className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-                style={{ backgroundColor: PRIMARY_COLOR }}
-              >
-                L
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold" style={{ color: PRIMARY_COLOR }}>
-                  LAMA seller app
-                </h1>
-                <p className="text-xs text-slate-500">Panel Administrativo</p>
-              </div>
-            </div>
+      <header className="bg-amber-50 border-b border-slate-200">
+        <PageContainer>
+          <div className="flex items-center justify-between py-6">
+            <h1 className="text-2xl font-bold" style={{ color: PRIMARY_COLOR }}>
+              LAMA seller app
+            </h1>
 
             <Link 
               href="/" 
-              className="px-4 py-2 rounded-lg font-medium transition-colors border-2"
+              className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-slate-100 border-2"
               style={{ 
                 color: PRIMARY_COLOR,
                 borderColor: PRIMARY_COLOR
@@ -79,39 +69,41 @@ export default async function AdminPage() {
               Volver
             </Link>
           </div>
-        </div>
+        </PageContainer>
       </header>
 
       {/* Contenido principal */}
-      <div className="max-w-6xl mx-auto px-8 py-12">
-        {/* Título */}
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold mb-2" style={{ color: PRIMARY_COLOR }}>
-            Panel Administrativo
-          </h2>
-          <p className="text-slate-600">
-            Visualiza estadísticas y gestiona el sistema
-          </p>
+      <PageContainer>
+        <div className="py-12">
+          {/* Título */}
+          <div className="mb-12">
+            <h2 className="text-4xl font-bold mb-2" style={{ color: PRIMARY_COLOR }}>
+              Panel Administrativo
+            </h2>
+            <p className="text-slate-600">
+              Visualiza estadísticas y gestiona el sistema
+            </p>
+          </div>
+
+          {/* Estadísticas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+            <StatCard label="Total Vendedores" value={totalVendedores} primaryColor={PRIMARY_COLOR} />
+            <StatCard label="Total Productos" value={totalProductos} primaryColor={PRIMARY_COLOR} />
+            <StatCard label="Activos" value={productosActivos} primaryColor={PRIMARY_COLOR} />
+            <StatCard label="Vendidos" value={productosVendidos} primaryColor={PRIMARY_COLOR} />
+            <StatCard label="Órdenes" value={totalOrdenes} primaryColor={PRIMARY_COLOR} />
+          </div>
+
+          {/* Vendedores */}
+          <VendedoresTable vendedores={vendedores} primaryColor={PRIMARY_COLOR} dateLocale={DATE_LOCALE} />
+
+          {/* Productos */}
+          <ProductosTable productos={todosProductos} primaryColor={PRIMARY_COLOR} dateLocale={DATE_LOCALE} />
+
+          {/* Órdenes */}
+          <OrdenesTable ordenes={ordenes} primaryColor={PRIMARY_COLOR} dateLocale={DATE_LOCALE} />
         </div>
-
-        {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-          <StatCard label="Total Vendedores" value={totalVendedores} icon="👥" primaryColor={PRIMARY_COLOR} />
-          <StatCard label="Total Productos" value={totalProductos} icon="📦" primaryColor={PRIMARY_COLOR} />
-          <StatCard label="Activos" value={productosActivos} icon="✅" primaryColor={PRIMARY_COLOR} />
-          <StatCard label="Vendidos" value={productosVendidos} icon="🎉" primaryColor={PRIMARY_COLOR} />
-          <StatCard label="Órdenes" value={totalOrdenes} icon="📋" primaryColor={PRIMARY_COLOR} />
-        </div>
-
-        {/* Vendedores */}
-        <VendedoresTable vendedores={vendedores} primaryColor={PRIMARY_COLOR} dateLocale={DATE_LOCALE} />
-
-        {/* Productos */}
-        <ProductosTable productos={todosProductos} primaryColor={PRIMARY_COLOR} dateLocale={DATE_LOCALE} />
-
-        {/* Órdenes */}
-        <OrdenesTable ordenes={ordenes} primaryColor={PRIMARY_COLOR} dateLocale={DATE_LOCALE} />
-      </div>
+      </PageContainer>
     </main>
   );
 }
