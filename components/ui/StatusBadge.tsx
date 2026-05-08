@@ -1,40 +1,58 @@
-type StatusType = 'activa' | 'inactiva' | 'vendida' | 'pendiente' | 'aprobado' | 'rechazado' | null | undefined;
+type StatusType = 'activa' | 'inactiva' | 'vendida' | 'pendiente' | 'aprobado' | 'rechazado' | 'completado' | 'cancelado' | null | undefined;
 
 interface StatusBadgeProps {
   status?: StatusType;
   label?: string;
 }
 
-const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
+const statusConfig: Record<string, { bg: string; text: string; icon: string; label: string }> = {
   activa: {
-    bg: '#dbeafe',
-    text: '#075985',
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    icon: '●',
     label: 'Activa'
   },
   inactiva: {
-    bg: '#f3f4f6',
-    text: '#6b7280',
+    bg: 'bg-slate-50',
+    text: 'text-slate-600',
+    icon: '○',
     label: 'Inactiva'
   },
   vendida: {
-    bg: '#dbeafe',
-    text: '#075985',
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
+    icon: '✓',
     label: 'Vendida'
   },
+  completado: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    icon: '✓',
+    label: 'Completado'
+  },
   pendiente: {
-    bg: '#fef3c7',
-    text: '#92400e',
+    bg: 'bg-amber-50',
+    text: 'text-amber-700',
+    icon: '⏱',
     label: 'Pendiente'
   },
   aprobado: {
-    bg: '#dcfce7',
-    text: '#166534',
+    bg: 'bg-green-50',
+    text: 'text-green-700',
+    icon: '✓',
     label: 'Aprobado'
   },
   rechazado: {
-    bg: '#fee2e2',
-    text: '#991b1b',
+    bg: 'bg-red-50',
+    text: 'text-red-700',
+    icon: '✕',
     label: 'Rechazado'
+  },
+  cancelado: {
+    bg: 'bg-red-50',
+    text: 'text-red-700',
+    icon: '✕',
+    label: 'Cancelado'
   }
 };
 
@@ -42,23 +60,23 @@ export function StatusBadge({ status, label }: StatusBadgeProps) {
   // Default status if not provided
   if (!status) {
     return (
-      <span 
-        className="px-3 py-1 rounded-lg text-xs font-medium"
-        style={{ backgroundColor: '#f3f4f6', color: '#6b7280' }}
-      >
+      <span className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 text-slate-600">
         Sin estado
       </span>
     );
   }
 
-  const config = statusConfig[status] || { bg: '#f3f4f6', text: '#6b7280', label: status };
+  const config = statusConfig[status] || { 
+    bg: 'bg-slate-50',
+    text: 'text-slate-600',
+    icon: '○',
+    label: status 
+  };
   const displayLabel = label || config.label;
 
   return (
-    <span 
-      className="px-3 py-1 rounded-lg text-xs font-medium"
-      style={{ backgroundColor: config.bg, color: config.text }}
-    >
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium ${config.bg} ${config.text}`}>
+      <span className="text-xs">{config.icon}</span>
       {displayLabel}
     </span>
   );

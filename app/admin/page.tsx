@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { Producto, Orden, Vendedor } from '@/types';
@@ -14,6 +16,11 @@ const PRIMARY_COLOR = '#515922';
 const DATE_LOCALE = 'es-AR';
 
 export default async function AdminPage() {
+  // Protección: verificar que el usuario esté autenticado
+  const { userId } = await auth();
+  if (!userId) {
+    redirect('/sign-in');
+  }
   // 1. Traer todos los vendedores
   const { data: vendedores, error: errorVendedores } = await supabase
     .from('vendedor')

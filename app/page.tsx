@@ -1,70 +1,117 @@
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs';
+import { Show } from '@clerk/nextjs';
+import Link from 'next/link';
 import { PageContainer } from '@/components/ui/PageContainer';
 
-const PRIMARY_COLOR = '#515922';
-
 export default function Home() {
-  // TODO: Cuando Clerk esté configurado, esta lógica debería ser:
-  // if (isSignedIn) {
-  //   redirect('/dashboard');
-  // }
-  
   return (
-    <main className="min-h-screen bg-amber-50">
-      {/* Header */}
-      <header className="bg-amber-50 border-b border-slate-200">
+    <main className="flex-1">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-b from-[#f6f1e7] to-[#ede6d8]">
         <PageContainer>
-          <div className="flex items-center justify-between py-6">
-            <h1 className="text-2xl font-bold" style={{ color: PRIMARY_COLOR }}>
-              LAMA seller app
+          <div className="py-20 md:py-32 flex flex-col items-center justify-center text-center min-h-[calc(100vh-80px)]">
+            
+            {/* Main Heading */}
+            <h1 className="text-4xl md:text-6xl font-bold text-[#37413d] mb-4 leading-tight">
+              Bienvenido a LAMA seller
             </h1>
-            
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
-          </div>
-        </PageContainer>
-      </header>
 
-      {/* Contenido principal */}
-      <PageContainer>
-        <div className="py-12 flex items-center justify-center min-h-[calc(100vh-200px)]">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4" style={{ color: PRIMARY_COLOR }}>
-              Bienvenido a LAMA seller app
-            </h2>
-            <p className="text-slate-600 text-lg mb-12">
-              Inicia sesión o crea una cuenta para continuar
+            {/* Subtitle */}
+            <p className="text-lg md:text-xl text-[#6f7f6d] mb-4 max-w-2xl">
+              Tu plataforma para vender ropa vintage y usada con estilo
             </p>
-            
+
+            {/* Description */}
+            <p className="text-base md:text-lg text-[#6f7f6d]/80 mb-12 max-w-2xl leading-relaxed">
+              Gestiona tu catálogo, tus ventas y tus clientes en un solo lugar. 
+            </p>
+
+            {/* CTA Buttons */}
             <Show when="signed-out">
-              <div className="flex gap-4 justify-center">
-                <SignInButton mode="modal">
-                  <span 
-                    className="px-6 py-3 rounded-lg font-medium transition-all duration-200 border-2 inline-block cursor-pointer"
-                    style={{ 
-                      borderColor: PRIMARY_COLOR,
-                      color: PRIMARY_COLOR
-                    }}
-                  >
-                    Iniciar sesión
-                  </span>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <span 
-                    className="px-6 py-3 rounded-lg font-medium transition-all duration-200 text-white inline-block cursor-pointer"
-                    style={{ 
-                      backgroundColor: PRIMARY_COLOR
-                    }}
-                  >
-                    Registrarse
-                  </span>
-                </SignUpButton>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/sign-in"
+                  className="px-8 py-3 md:py-4 rounded-xl font-semibold border-2 border-[#8fa18d] text-[#8fa18d] bg-white hover:bg-[#8fa18d] hover:text-white transition-all duration-200 active:scale-95"
+                >
+                  Iniciar sesión
+                </Link>
+
+                <Link
+                  href="/sign-up"
+                  className="px-8 py-3 md:py-4 rounded-xl font-semibold bg-[#8fa18d] text-white hover:bg-[#6f7f6d] transition-all duration-200 active:scale-95 shadow-lg shadow-[#8fa18d]/25"
+                >
+                  Crear cuenta
+                </Link>
+              </div>
+            </Show>
+
+            <Show when="signed-in">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/dashboard"
+                  className="px-8 py-3 md:py-4 rounded-xl font-semibold bg-[#8fa18d] text-white hover:bg-[#6f7f6d] transition-all duration-200 active:scale-95 shadow-lg shadow-[#8fa18d]/25"
+                >
+                  Ir a Dashboard
+                </Link>
+
+                <Link
+                  href="/productos"
+                  className="px-8 py-3 md:py-4 rounded-xl font-semibold border-2 border-[#8fa18d] text-[#8fa18d] bg-white hover:bg-[#8fa18d] hover:text-white transition-all duration-200 active:scale-95"
+                >
+                  Ver Productos
+                </Link>
               </div>
             </Show>
           </div>
-        </div>
-      </PageContainer>
+        </PageContainer>
+      </section>
+
+      {/* Features Section (subtle, for signed-in users) */}
+      <Show when="signed-in">
+        <section className="bg-[#f6f1e7] py-16 md:py-20">
+          <PageContainer>
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Feature 1 */}
+              <div className="flex flex-col items-center text-center p-6 rounded-xl bg-[#ede6d8] border border-[#8fa18d]/10 hover:border-[#8fa18d]/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg bg-[#8fa18d]/10 flex items-center justify-center mb-4 text-2xl">
+                  📦
+                </div>
+                <h3 className="text-lg font-semibold text-[#37413d] mb-2">
+                  Gestiona tu catálogo
+                </h3>
+                <p className="text-sm text-[#6f7f6d]">
+                  Organiza tus productos con fotos, descripciones y precios
+                </p>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="flex flex-col items-center text-center p-6 rounded-xl bg-[#ede6d8] border border-[#8fa18d]/10 hover:border-[#8fa18d]/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg bg-[#8fa18d]/10 flex items-center justify-center mb-4 text-2xl">
+                  📊
+                </div>
+                <h3 className="text-lg font-semibold text-[#37413d] mb-2">
+                  Seguimiento de ventas
+                </h3>
+                <p className="text-sm text-[#6f7f6d]">
+                  Visualiza tus ventas y ganancias en tiempo real
+                </p>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="flex flex-col items-center text-center p-6 rounded-xl bg-[#ede6d8] border border-[#8fa18d]/10 hover:border-[#8fa18d]/30 transition-colors">
+                <div className="w-12 h-12 rounded-lg bg-[#8fa18d]/10 flex items-center justify-center mb-4 text-2xl">
+                  👥
+                </div>
+                <h3 className="text-lg font-semibold text-[#37413d] mb-2">
+                  Gestión de clientes
+                </h3>
+                <p className="text-sm text-[#6f7f6d]">
+                  Mantén registro de tus clientes y sus compras
+                </p>
+              </div>
+            </div>
+          </PageContainer>
+        </section>
+      </Show>
     </main>
   );
 }

@@ -1,6 +1,44 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-export default clerkMiddleware()
+// Definir rutas públicas
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/sign-in',
+  '/sign-in/(.*)',
+  '/sign-up',
+  '/sign-up/(.*)',
+  '/api/webhooks(.*)',
+]);
+
+// Definir rutas privadas que requieren autenticación
+const isPrivateRoute = createRouteMatcher([
+  '/dashboard',
+  '/dashboard/(.*)',
+  '/admin',
+  '/admin/(.*)',
+  '/productos',
+  '/productos/(.*)',
+  '/ventas',
+  '/ventas/(.*)',
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  const { userId } = await auth();
+
+  // Si la ruta es privada y NO hay usuario autenticado
+  if (isPrivateRoute(req) && !userId) {
+    // Redirigir a sign-in
+    return NextResponse.redirect(new URL('/sign-in', req.url));
+  }
+
+  // Si está autenticado en una ruta pública (sign-in, sign-up)
+  // Redirigir a dashboard después del login
+  if (userId && (req.nextUrl.pathname === '/sign-in' || req.nextUrl.pathname === '/sign-up')) {
+    // Redirigir a dashboard
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+});
 
 export const config = {
   matcher: [
@@ -11,4 +49,4 @@ export const config = {
     // Always run for Clerk-specific frontend API routes
     '/__clerk/(.*)',
   ],
-}
+};

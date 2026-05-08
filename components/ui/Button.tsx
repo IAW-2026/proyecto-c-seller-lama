@@ -1,19 +1,20 @@
 import React from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'outline';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   children: React.ReactNode;
-  primaryColor?: string;
+  isLoading?: boolean;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-  primary: 'bg-slate-900 text-white hover:bg-slate-800',
-  secondary: 'border-2 hover:bg-slate-50',
-  ghost: 'text-slate-700 hover:bg-slate-50'
+  primary: 'bg-[#8fa18d] text-white hover:bg-[#6f7f6d] active:scale-95 shadow-lg shadow-[#8fa18d]/25',
+  secondary: 'bg-[#ede6d8] text-[#37413d] hover:bg-[#8fa18d]/10 active:scale-95',
+  outline: 'border-2 border-[#8fa18d] text-[#8fa18d] hover:bg-[#8fa18d] hover:text-white active:scale-95',
+  ghost: 'text-[#6f7f6d] hover:bg-[#8fa18d]/5 active:scale-95'
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -26,25 +27,24 @@ export function Button({
   variant = 'primary',
   size = 'md',
   children,
-  primaryColor = '#515922',
+  isLoading = false,
+  disabled,
   className,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-medium transition-colors duration-200 rounded-lg';
+  const baseStyles = 'font-semibold transition-all duration-200 rounded-lg inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed';
   const variantStyle = variantStyles[variant];
   const sizeStyle = sizeStyles[size];
-
-  let customStyle = {};
-  if (variant === 'secondary' || variant === 'ghost') {
-    customStyle = { color: primaryColor, borderColor: primaryColor };
-  }
 
   return (
     <button
       className={`${baseStyles} ${variantStyle} ${sizeStyle} ${className || ''}`}
-      style={customStyle}
+      disabled={disabled || isLoading}
       {...props}
     >
+      {isLoading && (
+        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      )}
       {children}
     </button>
   );

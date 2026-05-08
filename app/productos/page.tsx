@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
 import { ProductoCard } from '@/components/productos/ProductoCard';
 import { supabase } from '@/lib/supabase';
@@ -8,6 +10,11 @@ const PRIMARY_COLOR = '#515922';
 const CURRENT_SELLER_ID = 'user_2x91ab';
 
 export default async function ProductosPage() {
+  // Protección: verificar que el usuario esté autenticado
+  const { userId } = await auth();
+  if (!userId) {
+    redirect('/sign-in');
+  }
   // Traer productos del vendedor actual CON el nombre de la categoría via JOIN
   const { data: productosConCategoria, error } = await supabase
     .from('producto')

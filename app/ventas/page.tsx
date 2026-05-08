@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { Orden } from '@/types';
@@ -10,6 +12,12 @@ const DATE_LOCALE = 'es-AR';
 const CURRENT_SELLER_ID = 'user_2x91ab';
 
 export default async function VentasPage() {
+  // Protección: verificar que el usuario esté autenticado
+  const { userId } = await auth();
+  if (!userId) {
+    redirect('/sign-in');
+  }
+
   // Traer todos los productos del vendedor
   const { data: productosVendedor, error: errorProductos } = await supabase
     .from('producto')
