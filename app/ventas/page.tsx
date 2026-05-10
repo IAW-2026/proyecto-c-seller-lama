@@ -9,7 +9,6 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 
 const PRIMARY_COLOR = '#515922';
 const DATE_LOCALE = 'es-AR';
-const CURRENT_SELLER_ID = 'user_2x91ab';
 
 export default async function VentasPage() {
   // Protección: verificar que el usuario esté autenticado
@@ -22,7 +21,7 @@ export default async function VentasPage() {
   const { data: productosVendedor, error: errorProductos } = await supabase
     .from('producto')
     .select('producto_id')
-    .eq('clerk_user_id', CURRENT_SELLER_ID);
+    .eq('clerk_user_id', userId);
 
   // Traer órdenes de los productos del vendedor
   let ordenes: (Orden & { producto_titulo?: string })[] = [];

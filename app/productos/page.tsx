@@ -7,7 +7,6 @@ import type { Producto } from '@/types';
 import { PageContainer } from '@/components/ui/PageContainer';
 
 const PRIMARY_COLOR = '#515922';
-const CURRENT_SELLER_ID = 'user_2x91ab';
 
 export default async function ProductosPage() {
   // Protección: verificar que el usuario esté autenticado
@@ -26,7 +25,7 @@ export default async function ProductosPage() {
       )
       `
     )
-    .eq('clerk_user_id', CURRENT_SELLER_ID);
+    .eq('clerk_user_id', userId);
 
   if (error) {
     console.error('Error al traer productos:', error);

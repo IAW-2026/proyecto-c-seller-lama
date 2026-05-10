@@ -3,10 +3,8 @@ import { auth } from '@clerk/nextjs/server';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { PageContainer } from '@/components/ui/PageContainer';
-import { StatCard } from '@/components/dashboard/StatCard';
+import { StatCard } from '@/components/ui/StatCard';
 import { PageHeader } from '@/components/ui/PageHeader';
-
-const CURRENT_SELLER_ID = 'user_2x91ab';
 
 export default async function DashboardPage() {
   // Protección: verificar que el usuario esté autenticado
@@ -19,13 +17,13 @@ export default async function DashboardPage() {
   const { data: productosVendedor, error: errorProductos } = await supabase
     .from('producto')
     .select('*')
-    .eq('clerk_user_id', CURRENT_SELLER_ID);
+    .eq('clerk_user_id', userId);
 
   // 2. Traer datos del vendedor
   const { data: vendedorData, error: errorVendedor } = await supabase
     .from('vendedor')
     .select('*')
-    .eq('clerk_user_id', CURRENT_SELLER_ID);
+    .eq('clerk_user_id', userId);
   
   const vendedor = vendedorData && vendedorData.length > 0 ? vendedorData[0] : null;
 
@@ -70,25 +68,30 @@ export default async function DashboardPage() {
 
           {/* Estadísticas Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div className="bg-white rounded-xl p-6 border-l-4 border-[#8fa18d] shadow-sm hover:shadow-md transition-shadow">
-              <p className="text-sm font-medium text-[#6f7f6d] mb-2">Total de Productos</p>
-              <p className="text-3xl md:text-4xl font-bold text-[#37413d]">{totalProductos}</p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 border-l-4 border-[#4CAF50] shadow-sm hover:shadow-md transition-shadow">
-              <p className="text-sm font-medium text-[#6f7f6d] mb-2">Productos Activos</p>
-              <p className="text-3xl md:text-4xl font-bold text-[#4CAF50]">{productosActivos}</p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 border-l-4 border-[#2196F3] shadow-sm hover:shadow-md transition-shadow">
-              <p className="text-sm font-medium text-[#6f7f6d] mb-2">Productos Vendidos</p>
-              <p className="text-3xl md:text-4xl font-bold text-[#2196F3]">{productosVendidos}</p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 border-l-4 border-[#FF9800] shadow-sm hover:shadow-md transition-shadow">
-              <p className="text-sm font-medium text-[#6f7f6d] mb-2">Total de Órdenes</p>
-              <p className="text-3xl md:text-4xl font-bold text-[#FF9800]">{totalOrdenes}</p>
-            </div>
+            <StatCard 
+              variant="dashboard"
+              label="Total de Productos"
+              value={totalProductos}
+              borderColor="#8fa18d"
+            />
+            <StatCard 
+              variant="dashboard"
+              label="Productos Activos"
+              value={productosActivos}
+              borderColor="#4CAF50"
+            />
+            <StatCard 
+              variant="dashboard"
+              label="Productos Vendidos"
+              value={productosVendidos}
+              borderColor="#2196F3"
+            />
+            <StatCard 
+              variant="dashboard"
+              label="Total de Órdenes"
+              value={totalOrdenes}
+              borderColor="#FF9800"
+            />
           </div>
 
           {/* Quick Actions */}

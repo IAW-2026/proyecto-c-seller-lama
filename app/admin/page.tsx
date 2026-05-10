@@ -94,11 +94,11 @@ export default async function AdminPage() {
 
           {/* Estadísticas */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-            <StatCard label="Total Vendedores" value={totalVendedores} primaryColor={PRIMARY_COLOR} />
-            <StatCard label="Total Productos" value={totalProductos} primaryColor={PRIMARY_COLOR} />
-            <StatCard label="Activos" value={productosActivos} primaryColor={PRIMARY_COLOR} />
-            <StatCard label="Vendidos" value={productosVendidos} primaryColor={PRIMARY_COLOR} />
-            <StatCard label="Órdenes" value={totalOrdenes} primaryColor={PRIMARY_COLOR} />
+            <StatCard label="Total Vendedores" value={totalVendedores} primaryColor={PRIMARY_COLOR} variant="admin" />
+            <StatCard label="Total Productos" value={totalProductos} primaryColor={PRIMARY_COLOR} variant="admin" />
+            <StatCard label="Activos" value={productosActivos} primaryColor={PRIMARY_COLOR} variant="admin" />
+            <StatCard label="Vendidos" value={productosVendidos} primaryColor={PRIMARY_COLOR} variant="admin" />
+            <StatCard label="Órdenes" value={totalOrdenes} primaryColor={PRIMARY_COLOR} variant="admin" />
           </div>
 
           {/* Vendedores */}
