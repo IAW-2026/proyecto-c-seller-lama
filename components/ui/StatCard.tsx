@@ -1,3 +1,9 @@
+/*
+Componente reutilizable para mostrar métricas,
+estadísticas y KPIs en dashboards y paneles administrativos.
+Soporta múltiples variantes visuales según el contexto de uso.
+*/
+
 interface StatCardProps {
   label: string;
   value: number | string;

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { Producto } from '@/types';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 interface ProductoCardProps {
   producto: Producto & {
@@ -12,25 +13,6 @@ interface ProductoCardProps {
 export function ProductoCard({ producto }: ProductoCardProps) {
   const imagenPrincipal = (producto.imagenes && producto.imagenes[0]) || '';
   const isVendido = producto.estado_publicacion === 'vendida';
-
-  const estadoConfig = {
-    activa: {
-      label: 'Activo',
-      className: 'bg-green-100 text-green-700',
-    },
-    inactiva: {
-      label: 'Inactivo',
-      className: 'bg-yellow-100 text-yellow-700',
-    },
-    vendida: {
-      label: 'Vendido',
-      className: 'bg-red-100 text-red-700',
-    },
-  };
-
-  const estadoActual =
-    estadoConfig[producto.estado_publicacion as keyof typeof estadoConfig] ||
-    estadoConfig.inactiva;
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     e.currentTarget.src = 'https://picsum.photos/400/400';
@@ -68,9 +50,7 @@ export function ProductoCard({ producto }: ProductoCardProps) {
             <p className="text-xs font-medium text-[#6f7f6d] uppercase tracking-wide">              
               {producto.categoria_nombre}
             </p>
-            <span className={`text-xs font-semibold px-2 py-1 rounded ${estadoActual.className}`}>
-              {estadoActual.label}
-            </span>
+            <StatusBadge status={producto.estado_publicacion} />
           </div>
 
           {/* Título */}

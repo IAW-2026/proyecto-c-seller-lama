@@ -1,3 +1,9 @@
+/*
+Componente reutilizable para mostrar estados visuales
+consistentes en toda la aplicación.
+Centraliza colores, etiquetas e iconos según el estado.
+*/
+
 type StatusType = 'activa' | 'inactiva' | 'vendida' | 'pendiente' | 'aprobado' | 'rechazado' | 'completado' | 'cancelado' | null | undefined;
 
 interface StatusBadgeProps {

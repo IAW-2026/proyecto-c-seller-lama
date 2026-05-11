@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { ProductoCard } from '@/components/productos/ProductoCard';
@@ -9,7 +10,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 export default async function ProductosPage() {
   // Protección: verificar que el usuario esté autenticado
   const { userId } = await auth();
-  
+
   if (!userId) {
     redirect('/sign-in');
   }
@@ -29,7 +30,7 @@ export default async function ProductosPage() {
 
   if (error) {
     console.error('Error al traer productos:', error);
-    
+
     return (
       <main className="min-h-screen bg-amber-50">
         <PageContainer>
@@ -52,18 +53,31 @@ export default async function ProductosPage() {
       {/* Contenido principal */}
       <PageContainer>
         <div className="py-12">
-          {/* Título */}
+          {/* Header */}
           <PageHeader
             title="Productos"
             description="Gestiona tu catálogo de productos. Aquí puedes ver, editar y controlar el estado de tus artículos."
+            action={
+              <Link
+                href="/productos/nuevo"
+                className="bg-[#8fa18d] hover:bg-[#7a8c78] text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm"
+              >
+                + Nuevo producto
+              </Link>
+            }
           />
 
           {/* Grid de productos */}
           {productos.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {productos.map((producto: Producto & { categoria_nombre: string }) => (
-                <ProductoCard key={producto.producto_id} producto={producto} />
-              ))}
+              {productos.map(
+                (producto: Producto & { categoria_nombre: string }) => (
+                  <ProductoCard
+                    key={producto.producto_id}
+                    producto={producto}
+                  />
+                )
+              )}
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-300 rounded-lg p-8 text-center text-slate-600">
