@@ -2,13 +2,17 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import type { Producto } from '@/types';
 
 interface ProductoEditFormProps {
-  producto: any;
+  producto: Producto;
 }
+
 
 export function ProductoEditForm({ producto }: ProductoEditFormProps) {
   const [formData, setFormData] = useState(producto);
+
+  const imagenPrincipal = formData.imagenes?.[0] || '';
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -16,41 +20,47 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev: any) => ({
+    setFormData((prev: Producto) => ({
       ...prev,
       [name]:
-        name === 'precio' || name === 'stock' ? parseFloat(value) : value,
+        name === 'precio' ? value === '' ? 0 : parseFloat(value) : value,
     }));
   };
-
+ 
   const handleSave = () => {
     console.log('Datos del formulario:', formData);
     alert('Cambios guardados (mock - sin guardar en base de datos)');
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 p-8">
+    <main className="min-h-screen bg-[#f6f1e7] p-8">
       <div className="max-w-4xl mx-auto">
         <Link
           href="/productos"
-          className="text-blue-600 hover:text-blue-700 text-sm font-medium mb-8 inline-block"
+          className="text-[#6f7f6d] hover:text-[#37413d] text-sm font-medium mb-8 inline-block"
         >
           ← Volver a productos
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Imagen */}
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden p-4 shadow-sm">
-            <img
-              src={formData.imagenes[0]}
-              alt={formData.titulo}
-              className="w-full h-auto rounded-lg"
-            />
+          <div className="bg-[#ede6d8] rounded-xl border border-[#d8cfbd] overflow-hidden p-4 shadow-sm">            
+            {imagenPrincipal ? (
+              <img
+                src={imagenPrincipal}
+                alt={`Imagen de ${formData.titulo}`}
+                className="w-full h-auto rounded-lg"
+              />
+            ) : (
+              <div className="aspect-square flex items-center justify-center text-[#6f7f6d] bg-[#f6f1e7] rounded-lg">
+                Sin imagen
+              </div>
+            )}
           </div>
 
           {/* Formulario */}
-          <div className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
-            <h1 className="text-3xl font-bold text-slate-900 mb-8">
+          <div className="bg-[#ede6d8] rounded-xl border border-[#d8cfbd] p-8 shadow-sm">
+            <h1 className="text-3xl font-bold text-[#37413d] mb-8">
               {formData.titulo}
             </h1>
 
@@ -65,8 +75,7 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
                   name="titulo"
                   value={formData.titulo}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
-                />
+                  className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"                />
               </div>
 
               {/* Descripción */}
@@ -76,10 +85,10 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
                 </label>
                 <textarea
                   name="descripcion"
-                  value={formData.descripcion}
+                  value={formData.descripcion || ''}
                   onChange={handleChange}
                   rows={3}
-                  className="w-full px-4 py-3 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition resize-none"
+                  className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition resize-none"
                 />
               </div>
 
@@ -94,21 +103,7 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
                     name="precio"
                     value={formData.precio}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
-                  />
-                </div>
-
-                {/* Stock */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Stock
-                  </label>
-                  <input
-                    type="number"
-                    name="stock"
-                    value={formData.stock}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+                    className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
                   />
                 </div>
               </div>
@@ -121,10 +116,9 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
                 <input
                   type="text"
                   name="marca"
-                  value={formData.marca}
+                  value={formData.marca || ''}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
-                />
+                  className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"/>
               </div>
 
               {/* Talle */}
@@ -136,9 +130,9 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
                   <input
                     type="text"
                     name="talle"
-                    value={formData.talle}
+                    value={formData.talle || ''}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-slate-900 placeholder:text-slate-400 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+                    className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
                   />
                 </div>
 
@@ -151,7 +145,7 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
                     name="estado_prenda"
                     value={formData.estado_prenda}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-slate-900 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
+                    className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
                   >
                     <option value="nuevo">Nuevo</option>
                     <option value="usado">Usado</option>
@@ -169,8 +163,7 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
                   name="estado_publicacion"
                   value={formData.estado_publicacion}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-slate-900 border border-slate-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
-                >
+                  className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition">
                   <option value="activa">Activa</option>
                   <option value="inactiva">Inactiva</option>
                   <option value="vendida">Vendida</option>
@@ -181,14 +174,12 @@ export function ProductoEditForm({ producto }: ProductoEditFormProps) {
               <div className="flex gap-3 pt-6">
                 <button
                   onClick={handleSave}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm"
-                >
+                  className="flex-1 bg-[#8fa18d] hover:bg-[#7a8c78] text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm">
                   Guardar cambios
                 </button>
                 <Link
                   href="/productos"
-                  className="flex-1 bg-white hover:bg-slate-50 text-slate-900 font-semibold py-3 px-4 rounded-lg border border-slate-300 transition duration-200 text-center"
-                >
+                  className="flex-1 bg-[#f6f1e7] hover:bg-[#e8dfcf] text-[#37413d] font-semibold py-3 px-4 rounded-lg border border-[#d8cfbd] transition duration-200 text-center">
                   Volver
                 </Link>
               </div>

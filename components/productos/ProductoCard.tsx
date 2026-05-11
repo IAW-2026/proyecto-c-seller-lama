@@ -13,15 +13,34 @@ export function ProductoCard({ producto }: ProductoCardProps) {
   const imagenPrincipal = (producto.imagenes && producto.imagenes[0]) || '';
   const isVendido = producto.estado_publicacion === 'vendida';
 
+  const estadoConfig = {
+    activa: {
+      label: 'Activo',
+      className: 'bg-green-100 text-green-700',
+    },
+    inactiva: {
+      label: 'Inactivo',
+      className: 'bg-yellow-100 text-yellow-700',
+    },
+    vendida: {
+      label: 'Vendido',
+      className: 'bg-red-100 text-red-700',
+    },
+  };
+
+  const estadoActual =
+    estadoConfig[producto.estado_publicacion as keyof typeof estadoConfig] ||
+    estadoConfig.inactiva;
+
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     e.currentTarget.src = 'https://picsum.photos/400/400';
   };
 
   return (
     <Link href={`/productos/${producto.producto_id}`}>
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full">
+      <div className="bg-[#ede6d8] rounded-xl border border-[#d8cfbd] overflow-hidden hover:shadow-xl hover:-translate-y-1 hover:border-[#8fa18d] transition-all duration-300 cursor-pointer h-full">        
         {/* Imagen */}
-        <div className="relative bg-slate-100 aspect-square overflow-hidden">
+        <div className="relative bg-[#f6f1e7] aspect-square overflow-hidden">          
           {imagenPrincipal ? (
             <img
               src={imagenPrincipal}
@@ -30,8 +49,9 @@ export function ProductoCard({ producto }: ProductoCardProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400">
-              Sin imagen
+            <div className="w-full h-full flex flex-col items-center justify-center text-[#6f7f6d] bg-[#f6f1e7]">
+              <span className="text-sm font-medium">Sin imagen</span>
+              <span className="text-xs mt-1">Producto no disponible</span>
             </div>
           )}
           {isVendido && (
@@ -45,27 +65,38 @@ export function ProductoCard({ producto }: ProductoCardProps) {
         <div className="p-4">
           {/* Estado y Categoría */}
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <p className="text-xs font-medium text-[#6f7f6d] uppercase tracking-wide">              
               {producto.categoria_nombre}
             </p>
-            <span className={`text-xs font-semibold px-2 py-1 rounded ${
-              producto.estado_publicacion === 'activa' 
-                ? 'bg-green-100 text-green-700' 
-                : 'bg-red-100 text-red-700'
-            }`}>
-              {producto.estado_publicacion === 'activa' ? 'Activo' : 'Vendido'}
+            <span className={`text-xs font-semibold px-2 py-1 rounded ${estadoActual.className}`}>
+              {estadoActual.label}
             </span>
           </div>
 
           {/* Título */}
-          <h3 className="text-sm font-bold text-slate-900 line-clamp-2 mt-1 mb-3">
+          <h3 className="text-sm font-bold text-[#37413d] line-clamp-2 mt-1 mb-3">            
             {producto.titulo}
           </h3>
 
+          {/* Detalles adicionales */}
+          <div className="space-y-1 mb-3">
+            <p className="text-sm text-slate-600">
+              Marca: <span className="font-medium">{producto.marca}</span>
+            </p>
+
+            <p className="text-sm text-slate-600">
+              Talle: <span className="font-medium">{producto.talle}</span>
+            </p>
+
+            <p className="text-sm text-slate-600 capitalize">
+              Estado: <span className="font-medium">{producto.estado_prenda}</span>
+            </p>
+          </div>
+
           {/* Precio */}
-          <div className="pt-3 border-t border-slate-100">
-            <p className="text-lg font-bold text-slate-900">
-              ${producto.precio.toLocaleString()}
+          <div className="pt-3 border-t border-[#d8cfbd]">
+            <p className="text-lg font-bold text-[#37413d]">
+              ${Number(producto.precio).toLocaleString('es-AR')}
             </p>
           </div>
         </div>
