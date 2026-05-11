@@ -1,3 +1,10 @@
+/*
+Componente reutilizable para estandarizar el ancho máximo,
+Centrado y espaciado horizontal de las páginas.
+Permite mantener consistencia visual y responsive layout
+en toda la aplicación.
+*/
+
 interface PageContainerProps {
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';

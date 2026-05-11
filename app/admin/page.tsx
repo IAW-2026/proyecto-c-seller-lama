@@ -8,6 +8,7 @@ import { VendedoresTable } from '@/components/admin/VendedoresTable';
 import { ProductosTable } from '@/components/admin/ProductosTable';
 import { OrdenesTable } from '@/components/admin/OrdenesTable';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 // TODO: Proteger esta ruta con middleware de Clerk (solo admin)
 // Por ahora es accesible sin autenticación (solo para desarrollo)
@@ -83,14 +84,10 @@ export default async function AdminPage() {
       <PageContainer>
         <div className="py-12">
           {/* Título */}
-          <div className="mb-12">
-            <h2 className="text-4xl font-bold mb-2" style={{ color: PRIMARY_COLOR }}>
-              Panel Administrativo
-            </h2>
-            <p className="text-slate-600">
-              Visualiza estadísticas y gestiona el sistema
-            </p>
-          </div>
+          <PageHeader
+            title="Panel Administrativo"
+            description="Visualiza estadísticas y gestiona el sistema"
+          />
 
           {/* Estadísticas */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">

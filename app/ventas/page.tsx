@@ -5,6 +5,7 @@ import type { Orden } from '@/types';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default async function VentasPage() {
   // Protección: verificar que el usuario esté autenticado
@@ -60,15 +61,10 @@ export default async function VentasPage() {
       <PageContainer>
         <div className="py-8 md:py-12">
           {/* Título */}
-          <div className="mb-12">
-            <h2 className="text-4xl font-bold mb-2 text-[#37413d]">
-              Mis Ventas
-            </h2>
-
-            <p className="text-slate-600">
-              Gestiona tus órdenes, pagos y estado de envíos
-            </p>
-          </div>
+          <PageHeader
+            title="Mis Ventas"
+            description="Gestiona tus órdenes, pagos y estado de envíos"
+          />
 
           {/* Estadísticas */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

@@ -1,3 +1,9 @@
+/*
+Componente reutilizable para encabezados de página.
+Estandariza títulos, descripciones y acciones
+manteniendo un layout responsive y consistente.
+*/
+
 interface PageHeaderProps {
   title: string;
   description?: string;

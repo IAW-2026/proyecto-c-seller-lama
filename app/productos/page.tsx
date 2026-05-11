@@ -4,6 +4,7 @@ import { ProductoCard } from '@/components/productos/ProductoCard';
 import { supabase } from '@/lib/supabase';
 import type { Producto } from '@/types';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default async function ProductosPage() {
   // Protección: verificar que el usuario esté autenticado
@@ -52,15 +53,10 @@ export default async function ProductosPage() {
       <PageContainer>
         <div className="py-12">
           {/* Título */}
-          <div className="mb-12">
-            <h2 className="text-4xl font-bold mb-2 text-[#37413d]">
-              Productos
-            </h2>
-
-            <p className="text-slate-600">
-              Gestiona tu catálogo de productos. Aquí puedes ver, editar y controlar el estado de tus artículos.
-            </p>
-          </div>
+          <PageHeader
+            title="Productos"
+            description="Gestiona tu catálogo de productos. Aquí puedes ver, editar y controlar el estado de tus artículos."
+          />
 
           {/* Grid de productos */}
           {productos.length > 0 ? (
