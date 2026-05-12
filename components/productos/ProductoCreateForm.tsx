@@ -32,11 +32,11 @@ export function ProductoCreateForm({
     estado_publicacion: 'activa',
   });
 
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  const imagenPrincipal = imagePreview;
+  const imagenPrincipal = imagePreviews[0] || '';
 
   const formatPrice = (value: string) => {
     const numericValue = value.replace(/\D/g, '');
@@ -57,15 +57,26 @@ export function ProductoCreateForm({
     }));
   };
 
-  const handleImageChange = (
+  const handleImagesChange = (
     e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
+    ) => {
+    const files = Array.from(e.target.files || []);
 
-    if (!file) return;
+    if (files.length === 0) return;
 
-    setSelectedImage(file);
-    setImagePreview(URL.createObjectURL(file));
+    setSelectedImages((prev) => [
+        ...prev,
+        ...files,
+    ]);
+
+    const newPreviews = files.map((file) =>
+        URL.createObjectURL(file)
+    );
+
+    setImagePreviews((prev) => [
+        ...prev,
+        ...newPreviews,
+    ]);
   };
 
   const handleChange = (
@@ -86,8 +97,8 @@ export function ProductoCreateForm({
 
     let imageUrl = '';
 
-    if (selectedImage) {
-      const fileExt = selectedImage.name.split('.').pop();
+    if (selectedImages.length > 0) {
+      const fileExt = selectedImages[0].name.split('.').pop();
 
       const fileName = `${clerkUserId}-${Date.now()}.${fileExt}`;
 
@@ -95,7 +106,7 @@ export function ProductoCreateForm({
 
       const { error: uploadError } = await supabase.storage
         .from('productos')
-        .upload(filePath, selectedImage);
+        .upload(filePath, selectedImages[0]);
 
       if (uploadError) {
         setIsSaving(false);
@@ -193,14 +204,14 @@ export function ProductoCreateForm({
                     </div>
 
                     <span className="text-[#37413d] font-medium">
-                      {selectedImage
+                      {selectedImages.length > 0
                         ? 'Cambiar imagen'
                         : 'Seleccionar imagen'}
                     </span>
 
                     <span className="text-sm text-[#6f7f6d]">
-                      {selectedImage
-                        ? selectedImage.name
+                      {selectedImages.length > 0
+                        ? selectedImages[0].name
                         : 'JPG, PNG o WEBP'}
                     </span>
                   </div>
@@ -208,7 +219,7 @@ export function ProductoCreateForm({
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={handleImageChange}
+                    onChange={handleImagesChange}
                     className="hidden"
                   />
                 </label>
