@@ -1,188 +1,122 @@
 'use client';
 
-import Link from 'next/link';
 import { useState } from 'react';
-import type { Producto } from '@/types';
+import { useRouter } from 'next/navigation';
+import { useProductoForm } from '@/hooks/useProductoForm';
+import { updateProduct } from '@/lib/supabase-products';
+import { validateProductForm } from '@/lib/product-utils';
+import type { Producto, ProductFormData } from '@/types/producto';
+import { ImagePreview } from './FormSections/ImagePreview';
+import { ProductFormFields } from './FormSections/ProductFormFields';
+import { FormActions } from './FormSections/FormActions';
+
+interface Categoria {
+  categoria_producto_id: string;
+  nombre: string;
+}
 
 interface ProductoEditFormProps {
   producto: Producto;
+  categorias: Categoria[];
 }
 
+export function ProductoEditForm({
+  producto,
+  categorias,
+}: ProductoEditFormProps) {
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false);
 
-export function ProductoEditForm({ producto }: ProductoEditFormProps) {
-  const [formData, setFormData] = useState(producto);
-
-  const imagenPrincipal = formData.imagenes?.[0] || '';
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev: Producto) => ({
-      ...prev,
-      [name]:
-        name === 'precio' ? value === '' ? 0 : parseFloat(value) : value,
-    }));
+  // Convertir precio numérico a formato string
+  const initialFormData: ProductFormData = {
+    titulo: producto.titulo,
+    descripcion: producto.descripcion,
+    precio: producto.precio.toString(),
+    categoria_id: producto.categoria_id,
+    estado_prenda: producto.estado_prenda,
+    talle: producto.talle,
+    marca: producto.marca,
+    estado_publicacion: producto.estado_publicacion,
   };
- 
-  const handleSave = () => {
-    console.log('Datos del formulario:', formData);
-    alert('Cambios guardados (mock - sin guardar en base de datos)');
+
+  const { formData, errors, handleChange, handlePriceChange } = useProductoForm(
+    { initialData: initialFormData }
+  );
+
+  const imagenPrincipal = producto.imagenes?.[0] || '';
+
+  const handleSave = async () => {
+    // Validar formulario
+    const validation = validateProductForm({
+      titulo: formData.titulo,
+      precio: formData.precio,
+      categoria_id: formData.categoria_id,
+    });
+
+    if (!validation.isValid) {
+      alert('Por favor completa los campos requeridos correctamente');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      // Actualizar producto (sin cambiar imágenes por ahora)
+      const imageUrls = producto.imagenes || [];
+      await updateProduct(
+        producto.producto_id,
+        formData as ProductFormData,
+        imageUrls
+      );
+
+      router.push('/productos');
+      router.refresh();
+    } catch (error) {
+      console.error('Error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al actualizar el producto';
+      alert(errorMessage);
+      setIsSaving(false);
+    }
   };
 
   return (
     <main className="min-h-screen bg-[#f6f1e7] p-8">
       <div className="max-w-4xl mx-auto">
-        <Link
+        <a
           href="/productos"
-          className="text-[#6f7f6d] hover:text-[#37413d] text-sm font-medium mb-8 inline-block"
+          className="text-[#6f7f6d] hover:text-[#37413d] text-sm font-medium mb-8 inline-block transition"
         >
           ← Volver a productos
-        </Link>
+        </a>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Imagen */}
-          <div className="bg-[#ede6d8] rounded-xl border border-[#d8cfbd] overflow-hidden p-4 shadow-sm">            
-            {imagenPrincipal ? (
-              <img
-                src={imagenPrincipal}
-                alt={`Imagen de ${formData.titulo}`}
-                className="w-full h-auto rounded-lg"
-              />
-            ) : (
-              <div className="aspect-square flex items-center justify-center text-[#6f7f6d] bg-[#f6f1e7] rounded-lg">
-                Sin imagen
-              </div>
-            )}
-          </div>
+          {/* Imagen preview */}
+          <ImagePreview imageUrl={imagenPrincipal} />
 
           {/* Formulario */}
           <div className="bg-[#ede6d8] rounded-xl border border-[#d8cfbd] p-8 shadow-sm">
-            <h1 className="text-3xl font-bold text-[#37413d] mb-8">
-              {formData.titulo}
+            <h1 className="text-3xl font-bold text-[#37413d] mb-2">
+              Editar producto
             </h1>
+            <p className="text-sm text-[#6f7f6d] mb-8">{producto.titulo}</p>
 
             <div className="space-y-6">
-              {/* Título */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Título
-                </label>
-                <input
-                  type="text"
-                  name="titulo"
-                  value={formData.titulo}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"                />
-              </div>
+              {/* Campos del formulario */}
+              <ProductFormFields
+                formData={formData}
+                categorias={categorias}
+                onInputChange={handleChange}
+                onPriceChange={handlePriceChange}
+                errors={errors}
+              />
 
-              {/* Descripción */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Descripción
-                </label>
-                <textarea
-                  name="descripcion"
-                  value={formData.descripcion || ''}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition resize-none"
-                />
-              </div>
-
-              {/* Precio */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Precio
-                  </label>
-                  <input
-                    type="number"
-                    name="precio"
-                    value={formData.precio}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                  />
-                </div>
-              </div>
-
-              {/* Marca */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Marca
-                </label>
-                <input
-                  type="text"
-                  name="marca"
-                  value={formData.marca || ''}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"/>
-              </div>
-
-              {/* Talle */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Talle
-                  </label>
-                  <input
-                    type="text"
-                    name="talle"
-                    value={formData.talle || ''}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-[#37413d] placeholder:text-[#6f7f6d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                  />
-                </div>
-
-                {/* Estado de Prenda */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Estado de Prenda
-                  </label>
-                  <select
-                    name="estado_prenda"
-                    value={formData.estado_prenda}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                  >
-                    <option value="nuevo">Nuevo</option>
-                    <option value="usado">Usado</option>
-                    <option value="vintage">Vintage</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Estado de Publicación */}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Estado de Publicación
-                </label>
-                <select
-                  name="estado_publicacion"
-                  value={formData.estado_publicacion}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition">
-                  <option value="activa">Activa</option>
-                  <option value="inactiva">Inactiva</option>
-                  <option value="vendida">Vendida</option>
-                </select>
-              </div>
-
-              {/* Botones */}
-              <div className="flex gap-3 pt-6">
-                <button
-                  onClick={handleSave}
-                  className="flex-1 bg-[#8fa18d] hover:bg-[#7a8c78] text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm">
-                  Guardar cambios
-                </button>
-                <Link
-                  href="/productos"
-                  className="flex-1 bg-[#f6f1e7] hover:bg-[#e8dfcf] text-[#37413d] font-semibold py-3 px-4 rounded-lg border border-[#d8cfbd] transition duration-200 text-center">
-                  Volver
-                </Link>
-              </div>
+              {/* Botones de acción */}
+              <FormActions
+                isSaving={isSaving}
+                onSubmit={handleSave}
+                submitLabel="Guardar cambios"
+              />
             </div>
           </div>
         </div>

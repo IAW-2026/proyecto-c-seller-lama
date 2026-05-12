@@ -3,7 +3,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useProductoForm } from '@/hooks/useProductoForm';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import {
+  uploadProductImages,
+  createProduct,
+} from '@/lib/supabase-products';
+import { validateProductForm } from '@/lib/product-utils';
+import type { ProductFormData } from '@/types/producto';
+import { ImagePreview } from './FormSections/ImagePreview';
+import { ImageUpload } from './FormSections/ImageUpload';
+import { ProductFormFields } from './FormSections/ProductFormFields';
+import { FormActions } from './FormSections/FormActions';
 
 interface Categoria {
   categoria_producto_id: string;
@@ -20,142 +31,52 @@ export function ProductoCreateForm({
   categorias,
 }: ProductoCreateFormProps) {
   const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    titulo: '',
-    descripcion: '',
-    precio: '',
-    categoria_id: '',
-    estado_prenda: 'usado',
-    talle: '',
-    marca: '',
-    estado_publicacion: 'activa',
-  });
-
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const { formData, errors, handleChange, handlePriceChange, setFormData } =
+    useProductoForm();
+  const {
+    selectedImages,
+    imagePreviews,
+    handleImagesChange,
+    removeImage,
+    removeAllImages,
+    imagenPrincipal,
+  } = useImageUpload();
   const [isSaving, setIsSaving] = useState(false);
 
-  const imagenPrincipal = imagePreviews[0] || '';
-
-  const formatPrice = (value: string) => {
-    const numericValue = value.replace(/\D/g, '');
-
-    if (!numericValue) {
-      return '';
-    }
-
-    return Number(numericValue).toLocaleString('es-AR');
-  };
-
-  const handlePriceChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      precio: formatPrice(e.target.value),
-    }));
-  };
-
-  const handleImagesChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-    const files = Array.from(e.target.files || []);
-
-    if (files.length === 0) return;
-
-    setSelectedImages((prev) => [
-        ...prev,
-        ...files,
-    ]);
-
-    const newPreviews = files.map((file) =>
-        URL.createObjectURL(file)
-    );
-
-    setImagePreviews((prev) => [
-        ...prev,
-        ...newPreviews,
-    ]);
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   const handleCreate = async () => {
-    setIsSaving(true);
-
-    let imageUrl = '';
-
-    if (selectedImages.length > 0) {
-      const fileExt = selectedImages[0].name.split('.').pop();
-
-      const fileName = `${clerkUserId}-${Date.now()}.${fileExt}`;
-
-      const filePath = `productos/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('productos')
-        .upload(filePath, selectedImages[0]);
-
-      if (uploadError) {
-        setIsSaving(false);
-
-        console.error('Error al subir imagen:', uploadError);
-
-        alert('Error al subir la imagen');
-
-        return;
-      }
-
-      const { data } = supabase.storage
-        .from('productos')
-        .getPublicUrl(filePath);
-
-      imageUrl = data.publicUrl;
-    }
-
-    const imagenesArray = imageUrl ? [imageUrl] : [];
-
-    const precioNumerico = Number(
-      formData.precio.replace(/\./g, '')
-    );
-
-    const { error } = await supabase.from('producto').insert({
-      clerk_user_id: clerkUserId,
+    // Validar formulario
+    const validation = validateProductForm({
       titulo: formData.titulo,
-      descripcion: formData.descripcion || null,
-      precio: precioNumerico,
-      imagenes: imagenesArray,
+      precio: formData.precio,
       categoria_id: formData.categoria_id,
-      estado_prenda: formData.estado_prenda,
-      talle: formData.talle || null,
-      marca: formData.marca || null,
-      estado_publicacion: formData.estado_publicacion,
     });
 
-    setIsSaving(false);
-
-    if (error) {
-      console.error('Error al crear producto:', error);
-
-      alert('Error al crear el producto');
-
+    if (!validation.isValid) {
+      alert('Por favor completa los campos requeridos correctamente');
       return;
     }
 
-    router.push('/productos');
-    router.refresh();
+    setIsSaving(true);
+
+    try {
+      // Subir imágenes
+      let imageUrls: string[] = [];
+      if (selectedImages.length > 0) {
+        imageUrls = await uploadProductImages(clerkUserId, selectedImages);
+      }
+
+      // Crear producto
+      await createProduct(clerkUserId, formData as ProductFormData, imageUrls);
+
+      router.push('/productos');
+      router.refresh();
+    } catch (error) {
+      console.error('Error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Error al crear el producto';
+      alert(errorMessage);
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -163,23 +84,40 @@ export function ProductoCreateForm({
       <div className="max-w-4xl mx-auto">
         <Link
           href="/productos"
-          className="text-[#6f7f6d] hover:text-[#37413d] text-sm font-medium mb-8 inline-block"
+          className="text-[#6f7f6d] hover:text-[#37413d] text-sm font-medium mb-8 inline-block transition"
         >
           ← Volver a productos
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Imagen preview */}
-          <div className="bg-[#ede6d8] rounded-xl border border-[#d8cfbd] overflow-hidden p-4 shadow-sm">
-            {imagenPrincipal ? (
-              <img
-                src={imagenPrincipal}
-                alt="Vista previa del producto"
-                className="w-full h-auto rounded-lg object-cover"
-              />
-            ) : (
-              <div className="aspect-square flex items-center justify-center text-[#6f7f6d] bg-[#f6f1e7] rounded-lg">
-                Sin imagen
+          <div>
+            <ImagePreview imageUrl={imagenPrincipal} />
+
+            {/* Galería de imágenes seleccionadas */}
+            {imagePreviews.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-medium text-[#37413d] mb-3">
+                  Imágenes seleccionadas ({imagePreviews.length})
+                </h3>
+                <div className="grid grid-cols-3 gap-3">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={preview}
+                        alt={`Imagen ${index + 1}`}
+                        className="w-full h-24 rounded-lg object-cover border border-[#d8cfbd]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-[#d17d6f] text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-sm font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -192,193 +130,24 @@ export function ProductoCreateForm({
 
             <div className="space-y-6">
               {/* Selector imagen */}
-              <div>
-                <label className="block text-sm font-medium text-[#37413d] mb-2">
-                  Imagen del producto
-                </label>
+              <ImageUpload
+                onImagesChange={handleImagesChange}
+                selectedImagesCount={selectedImages.length}
+                firstImageName={selectedImages[0]?.name}
+                onRemoveAll={removeAllImages}
+              />
 
-                <label className="block cursor-pointer rounded-xl border-2 border-dashed border-[#8fa18d] bg-[#f6f1e7] p-6 text-center hover:bg-[#e8dfcf] transition duration-200">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="w-12 h-12 rounded-full bg-[#8fa18d]/10 flex items-center justify-center text-2xl">
-                      📷
-                    </div>
+              {/* Campos del formulario */}
+              <ProductFormFields
+                formData={formData}
+                categorias={categorias}
+                onInputChange={handleChange}
+                onPriceChange={handlePriceChange}
+                errors={errors}
+              />
 
-                    <span className="text-[#37413d] font-medium">
-                      {selectedImages.length > 0
-                        ? 'Cambiar imagen'
-                        : 'Seleccionar imagen'}
-                    </span>
-
-                    <span className="text-sm text-[#6f7f6d]">
-                      {selectedImages.length > 0
-                        ? selectedImages[0].name
-                        : 'JPG, PNG o WEBP'}
-                    </span>
-                  </div>
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImagesChange}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-
-              {/* Título */}
-              <div>
-                <label className="block text-sm font-medium text-[#37413d] mb-2">
-                  Título
-                </label>
-
-                <input
-                  name="titulo"
-                  value={formData.titulo}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                />
-              </div>
-
-              {/* Descripción */}
-              <div>
-                <label className="block text-sm font-medium text-[#37413d] mb-2">
-                  Descripción
-                </label>
-
-                <textarea
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition resize-none"
-                />
-              </div>
-
-              {/* Categoría */}
-              <div>
-                <label className="block text-sm font-medium text-[#37413d] mb-2">
-                  Categoría
-                </label>
-
-                <select
-                  name="categoria_id"
-                  value={formData.categoria_id}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                >
-                  <option value="">Seleccionar categoría</option>
-
-                  {categorias.map((categoria) => (
-                    <option
-                      key={categoria.categoria_producto_id}
-                      value={categoria.categoria_producto_id}
-                    >
-                      {categoria.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Precio */}
-              <div>
-                <label className="block text-sm font-medium text-[#37413d] mb-2">
-                  Precio
-                </label>
-
-                <input
-                  name="precio"
-                  type="text"
-                  inputMode="numeric"
-                  value={formData.precio}
-                  onChange={handlePriceChange}
-                  placeholder="10.000"
-                  className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                />
-              </div>
-
-              {/* Marca y talle */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#37413d] mb-2">
-                    Marca
-                  </label>
-
-                  <input
-                    name="marca"
-                    value={formData.marca}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-[#37413d] mb-2">
-                    Talle
-                  </label>
-
-                  <input
-                    name="talle"
-                    value={formData.talle}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                  />
-                </div>
-              </div>
-
-              {/* Estado prenda */}
-              <div>
-                <label className="block text-sm font-medium text-[#37413d] mb-2">
-                  Estado de la prenda
-                </label>
-
-                <select
-                  name="estado_prenda"
-                  value={formData.estado_prenda}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                >
-                  <option value="nuevo">Nuevo</option>
-                  <option value="usado">Usado</option>
-                  <option value="vintage">Vintage</option>
-                </select>
-              </div>
-
-              {/* Estado publicación */}
-              <div>
-                <label className="block text-sm font-medium text-[#37413d] mb-2">
-                  Estado de publicación
-                </label>
-
-                <select
-                  name="estado_publicacion"
-                  value={formData.estado_publicacion}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
-                >
-                  <option value="activa">Activa</option>
-                  <option value="inactiva">Inactiva</option>
-                  <option value="vendida">Vendida</option>
-                </select>
-              </div>
-
-              {/* Botones */}
-              <div className="flex gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={handleCreate}
-                  disabled={isSaving}
-                  className="flex-1 bg-[#8fa18d] hover:bg-[#7a8c78] disabled:opacity-60 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm"
-                >
-                  {isSaving ? 'Creando...' : 'Crear producto'}
-                </button>
-
-                <Link
-                  href="/productos"
-                  className="flex-1 bg-[#f6f1e7] hover:bg-[#e8dfcf] text-[#37413d] font-semibold py-3 px-4 rounded-lg border border-[#d8cfbd] transition duration-200 text-center"
-                >
-                  Cancelar
-                </Link>
-              </div>
+              {/* Botones de acción */}
+              <FormActions isSaving={isSaving} onSubmit={handleCreate} />
             </div>
           </div>
         </div>
