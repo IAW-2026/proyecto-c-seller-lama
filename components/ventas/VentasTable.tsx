@@ -1,5 +1,5 @@
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import type { OrdenConProducto } from '@/types/ventas';
+import type { OrdenConProducto } from '@/types/orden';
 
 interface VentasTableProps {
   ordenes: OrdenConProducto[];
