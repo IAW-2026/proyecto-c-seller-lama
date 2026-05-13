@@ -106,3 +106,46 @@ export const updateProduct = async (
     throw new Error(`Error al actualizar producto: ${error.message}`);
   }
 };
+
+/**
+ * Elimina imágenes del producto desde Supabase Storage
+ */
+export const deleteProductImages = async (
+  imageUrls: string[]
+): Promise<void> => {
+  if (imageUrls.length === 0) return;
+
+  const filePaths = imageUrls.map((url) => {
+    const urlParts = url.split('/productos/');
+    return `productos/${urlParts[1]}`;
+  });
+
+  const { error } = await supabase.storage
+    .from('productos')
+    .remove(filePaths);
+
+  if (error) {
+    throw new Error(`Error al eliminar imágenes: ${error.message}`);
+  }
+};
+
+/**
+ * Elimina un producto de la base de datos
+ */
+export const deleteProduct = async (
+  productoId: string,
+  imageUrls: string[]
+): Promise<void> => {
+  // Eliminar imágenes primero
+  await deleteProductImages(imageUrls);
+
+  // Eliminar producto
+  const { error } = await supabase
+    .from('producto')
+    .delete()
+    .eq('producto_id', productoId);
+
+  if (error) {
+    throw new Error(`Error al eliminar producto: ${error.message}`);
+  }
+};

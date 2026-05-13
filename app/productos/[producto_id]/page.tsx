@@ -13,6 +13,11 @@ type ProductoConCategoria = Producto & {
   categoria_nombre: string;
 };
 
+interface Categoria {
+  categoria_producto_id: string;
+  nombre: string;
+}
+
 export default async function ProductoDetallePage({ params }: Props) {
   const { userId } = await auth();
 
@@ -36,6 +41,12 @@ export default async function ProductoDetallePage({ params }: Props) {
     .eq('producto_id', producto_id)
     .eq('clerk_user_id', userId)
     .single(); // .single() porque solo espera 1 resultado
+
+  // Traer todas las categorías
+  const { data: categorias, error: categoriasError } = await supabase
+    .from('categoria_producto')
+    .select('categoria_producto_id, nombre')
+    .order('nombre', { ascending: true });
 
   if (error || !producto) {
     return (
@@ -62,5 +73,10 @@ export default async function ProductoDetallePage({ params }: Props) {
     categoria_nombre: producto.categoria_producto?.nombre || 'Sin categoría',
   };
 
-  return <ProductoEditForm producto={productoConCategoria as ProductoConCategoria} />;
+  return (
+    <ProductoEditForm 
+      producto={productoConCategoria as ProductoConCategoria}
+      categorias={(categorias as Categoria[]) || []}
+    />
+  );
 }

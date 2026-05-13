@@ -11,6 +11,7 @@ interface UseProductoFormProps {
 interface UseProductoFormReturn {
   formData: ProductFormData;
   errors: Record<string, string>;
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   handleChange: (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -18,17 +19,17 @@ interface UseProductoFormReturn {
   ) => void;
   handlePriceChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   reset: () => void;
-  setFormData: (data: ProductFormData) => void;
+  setFormData: React.Dispatch<React.SetStateAction<ProductFormData>>;
 }
 
 const DEFAULT_FORM_DATA: ProductFormData = {
   titulo: '',
-  descripcion: null,
+  descripcion: '',
   precio: '',
   categoria_id: '',
   estado_prenda: 'usado',
-  talle: null,
-  marca: null,
+  talle: '',
+  marca: '',
   estado_publicacion: 'activa',
 };
 
@@ -38,6 +39,7 @@ export const useProductoForm = (
   const [formData, setFormData] = useState<ProductFormData>(
     props?.initialData || DEFAULT_FORM_DATA
   );
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (
@@ -49,10 +51,9 @@ export const useProductoForm = (
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value === '' ? null : value,
+      [name]: value,
     }));
 
-    // Limpiar error del campo cuando el usuario empieza a editar
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -69,7 +70,6 @@ export const useProductoForm = (
       precio: formattedPrice,
     }));
 
-    // Limpiar error de precio
     if (errors.precio) {
       setErrors((prev) => ({
         ...prev,
@@ -79,13 +79,14 @@ export const useProductoForm = (
   };
 
   const reset = () => {
-    setFormData(DEFAULT_FORM_DATA);
+    setFormData(props?.initialData || DEFAULT_FORM_DATA);
     setErrors({});
   };
 
   return {
     formData,
     errors,
+    setErrors,
     handleChange,
     handlePriceChange,
     reset,

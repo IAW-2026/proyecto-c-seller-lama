@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProductoForm } from '@/hooks/useProductoForm';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useNotification } from '@/hooks/useNotification';
 import {
   uploadProductImages,
   createProduct,
@@ -31,6 +32,7 @@ export function ProductoCreateForm({
   categorias,
 }: ProductoCreateFormProps) {
   const router = useRouter();
+  const notification = useNotification();
   const { formData, errors, handleChange, handlePriceChange, setFormData } =
     useProductoForm();
   const {
@@ -52,7 +54,9 @@ export function ProductoCreateForm({
     });
 
     if (!validation.isValid) {
-      alert('Por favor completa los campos requeridos correctamente');
+      notification.showError(
+        'Por favor completa los campos obligatorios: Título, Precio y Categoría.'
+      );
       return;
     }
 
@@ -68,13 +72,13 @@ export function ProductoCreateForm({
       // Crear producto
       await createProduct(clerkUserId, formData as ProductFormData, imageUrls);
 
+      notification.showSuccess('Producto creado exitosamente.', 3000);
       router.push('/productos');
       router.refresh();
     } catch (error) {
-      console.error('Error:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Error al crear el producto';
-      alert(errorMessage);
+      notification.showError(errorMessage);
       setIsSaving(false);
     }
   };

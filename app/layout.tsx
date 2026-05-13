@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Navbar } from "@/components/navbar/Navbar";
+import { NotificationProvider } from "@/context/NotificationContext";
+import { NotificationContainer } from "@/providers/NotificationContainer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,8 +33,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[#f6f1e7]">
         <ClerkProvider>
-          <Navbar />
-          {children}
+          <NotificationProvider>
+            <Navbar />
+            {children}
+            <NotificationContainer />
+          </NotificationProvider>
         </ClerkProvider>
       </body>
     </html>

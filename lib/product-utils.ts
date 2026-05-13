@@ -26,6 +26,7 @@ export const parsePrice = (formattedPrice: string): number => {
 
 /**
  * Validaciones de formulario
+ * Recibe ProductFormData 
  */
 export const validateProductForm = (data: {
   titulo: string;
@@ -35,7 +36,7 @@ export const validateProductForm = (data: {
   const errors: Record<string, string> = {};
 
   if (!data.titulo.trim()) {
-    errors.titulo = 'El título es requerido';
+    errors.titulo = 'El título es obligatorio. Completá este campo para continuar.';
   }
 
   const numericPrice = parsePrice(data.precio);
@@ -44,7 +45,7 @@ export const validateProductForm = (data: {
   }
 
   if (!data.categoria_id) {
-    errors.categoria_id = 'La categoría es requerida';
+    errors.categoria_id = 'La categoría es obligatoria. Completá este campo para continuar.';
   }
 
   return {
