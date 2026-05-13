@@ -10,3 +10,7 @@ export interface Orden {
   fecha_creacion: string;
   fecha_actualizacion: string;
 }
+
+export interface OrdenConProducto extends Orden {
+  producto_titulo?: string;
+}
