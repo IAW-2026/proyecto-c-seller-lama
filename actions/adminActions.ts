@@ -9,6 +9,19 @@ type ActionResult = {
 };
 
 export async function deleteProducto(productoId: string): Promise<ActionResult> {
+  const { data: ordenesAsociadas } = await supabase
+    .from('orden')
+    .select('nro_orden')
+    .eq('producto_id', productoId)
+    .limit(1);
+
+  if (ordenesAsociadas && ordenesAsociadas.length > 0) {
+    return {
+      success: false,
+      message: `No se puede eliminar este producto porque tiene órdenes asociadas. Primero elimina la orden ${ordenesAsociadas[0].nro_orden}.`,
+    };
+  }
+
   const { error } = await supabase
     .from('producto')
     .delete()
@@ -17,7 +30,7 @@ export async function deleteProducto(productoId: string): Promise<ActionResult> 
   if (error) {
     return {
       success: false,
-      message: error.message,
+      message: 'No se pudo eliminar el producto. Intenta nuevamente.',
     };
   }
 
@@ -38,7 +51,7 @@ export async function deleteOrden(ordenId: string): Promise<ActionResult> {
   if (error) {
     return {
       success: false,
-      message: error.message,
+      message: 'No se pudo eliminar la orden. Intenta nuevamente.',
     };
   }
 
@@ -51,6 +64,19 @@ export async function deleteOrden(ordenId: string): Promise<ActionResult> {
 }
 
 export async function deleteVendedor(clerkUserId: string): Promise<ActionResult> {
+  const { data: productosAsociados } = await supabase
+    .from('producto')
+    .select('titulo')
+    .eq('clerk_user_id', clerkUserId)
+    .limit(1);
+
+  if (productosAsociados && productosAsociados.length > 0) {
+    return {
+      success: false,
+      message: `No se puede eliminar este vendedor porque tiene productos asociados. Primero elimina o reasigna el producto "${productosAsociados[0].titulo}".`,
+    };
+  }
+
   const { error } = await supabase
     .from('vendedor')
     .delete()
@@ -59,7 +85,7 @@ export async function deleteVendedor(clerkUserId: string): Promise<ActionResult>
   if (error) {
     return {
       success: false,
-      message: error.message,
+      message: 'No se pudo eliminar el vendedor. Intenta nuevamente.',
     };
   }
 

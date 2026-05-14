@@ -1,26 +1,26 @@
 import type { Vendedor } from '@/types';
 import { AdminTableContainer } from './AdminTableContainer';
 import { AdminTableActions } from './AdminTableActions';
-import { deleteVendedor } from '@/actions/adminActions';
 
 interface VendedoresTableProps {
   vendedores: Vendedor[] | null;
+  pagination?: React.ReactNode;
 }
 
-export function VendedoresTable({ vendedores }: VendedoresTableProps) {
+export function VendedoresTable({ vendedores, pagination }: VendedoresTableProps) {
   return (
-    <AdminTableContainer title="Vendedores">
+    <AdminTableContainer title="Vendedores" footer={pagination}>
       {vendedores && vendedores.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-[#f8f6f1] border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Nombre</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Email</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">DNI</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Teléfono</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Fecha Creación</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Acciones</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Nombre</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Email</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">DNI</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Teléfono</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Fecha Creación</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Acciones</th>
               </tr>
             </thead>
 

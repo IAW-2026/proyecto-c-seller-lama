@@ -2,21 +2,28 @@ import type { Producto } from '@/types';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { AdminTableContainer } from './AdminTableContainer';
 import { AdminTableActions } from './AdminTableActions';
-import { deleteProducto } from '@/actions/adminActions';
+
+type ProductoConVendedor = Producto & {
+  vendedor?: {
+    nombre_vendedor: string;
+  } | null;
+};
 
 interface ProductosTableProps {
-  productos: Producto[] | null;
+  productos: ProductoConVendedor[] | null;
+  pagination?: React.ReactNode;
 }
 
-export function ProductosTable({ productos }: ProductosTableProps) {
+export function ProductosTable({ productos, pagination }: ProductosTableProps) {
   return (
-    <AdminTableContainer title="Productos">
+    <AdminTableContainer title="Productos" footer={pagination}>
       {productos && productos.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-[#f8f6f1] border-b border-slate-200">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Título</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Vendedor</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Precio</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Estado Prenda</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Publicación</th>
@@ -34,6 +41,10 @@ export function ProductosTable({ productos }: ProductosTableProps) {
                 >
                   <td className="px-6 py-4 text-sm font-medium text-[#37413d] max-w-xs truncate">
                     {producto.titulo}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-slate-600">
+                    {producto.vendedor?.nombre_vendedor || 'Sin vendedor'}
                   </td>
 
                   <td className="px-6 py-4 text-sm font-medium text-[#37413d]">
@@ -60,7 +71,7 @@ export function ProductosTable({ productos }: ProductosTableProps) {
                     <AdminTableActions
                       editHref={`/productos/${producto.producto_id}`}
                       deleteType="producto"
-                      deleteId={producto.producto_id}                  
+                      deleteId={producto.producto_id}
                     />
                   </td>
                 </tr>

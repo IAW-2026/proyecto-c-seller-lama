@@ -2,27 +2,27 @@ import type { Orden } from '@/types';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { AdminTableContainer } from './AdminTableContainer';
 import { AdminTableActions } from './AdminTableActions';
-import { deleteOrden } from '@/actions/adminActions';
 
 interface OrdenesTableProps {
   ordenes: Orden[] | null;
+  pagination?: React.ReactNode;
 }
 
-export function OrdenesTable({ ordenes }: OrdenesTableProps) {
+export function OrdenesTable({ ordenes, pagination }: OrdenesTableProps) {
   return (
-    <AdminTableContainer title="Órdenes">
+    <AdminTableContainer title="Órdenes" footer={pagination}>
       {ordenes && ordenes.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-[#f8f6f1] border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Nro Orden</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Total</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Estado General</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Estado Pago</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Estado Envío</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Fecha</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Acciones</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Nro Orden</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Total</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Estado General</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Estado Pago</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Estado Envío</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Fecha</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Acciones</th>
               </tr>
             </thead>
 

@@ -25,7 +25,13 @@ export function AdminTableActions({
   const [isPending, startTransition] = useTransition();
   const notification = useNotification();
 
-  const handleDelete = () => {
+  const getDeleteLabel = () => {
+    if (deleteType === 'producto') return 'este producto';
+    if (deleteType === 'orden') return 'esta orden';
+    return 'este vendedor';
+  };
+
+  const executeDelete = () => {
     startTransition(async () => {
       let result;
 
@@ -53,6 +59,18 @@ export function AdminTableActions({
 
       notification.showSuccess(result.message, 3000);
     });
+  };
+
+  const handleDelete = () => {
+    notification.showWithAction(
+      `¿Estás seguro de que querés eliminar ${getDeleteLabel()}?`,
+      'warning',
+      {
+        label: 'Sí, eliminar',
+        onClick: executeDelete,
+      },
+      0
+    );
   };
 
   return (

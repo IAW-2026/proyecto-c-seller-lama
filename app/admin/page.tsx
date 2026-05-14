@@ -3,11 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { VendedoresTable } from '@/components/admin/VendedoresTable';
-import { ProductosTable } from '@/components/admin/ProductosTable';
-import { OrdenesTable } from '@/components/admin/OrdenesTable';
-
-const dateLocale = 'es-AR';
+import { AdminDashboardClient } from '@/components/admin/AdminDashboardClient';
 
 export default async function AdminPage() {
   const { userId } = await auth();
@@ -16,26 +12,31 @@ export default async function AdminPage() {
     redirect('/sign-in');
   }
 
+  const vendedoresQuery = supabase
+    .from('vendedor')
+    .select('*')
+    .order('fecha_creacion', { ascending: false });
+
+  const productosQuery = supabase
+    .from('producto')
+    .select(`
+      *,
+      vendedor (
+        nombre_vendedor
+      )
+    `)
+    .order('fecha_creacion', { ascending: false });
+
+  const ordenesQuery = supabase
+    .from('orden')
+    .select('*')
+    .order('fecha_creacion', { ascending: false });
+
   const [
     { data: vendedores, error: vendedoresError },
     { data: productos, error: productosError },
     { data: ordenes, error: ordenesError },
-  ] = await Promise.all([
-    supabase
-      .from('vendedor')
-      .select('*')
-      .order('fecha_creacion', { ascending: false }),
-
-    supabase
-      .from('producto')
-      .select('*')
-      .order('fecha_creacion', { ascending: false }),
-
-    supabase
-      .from('orden')
-      .select('*')
-      .order('fecha_creacion', { ascending: false }),
-  ]);
+  ] = await Promise.all([vendedoresQuery, productosQuery, ordenesQuery]);
 
   const hasError = vendedoresError || productosError || ordenesError;
 
@@ -62,15 +63,9 @@ export default async function AdminPage() {
             description="Vista general de vendedores, productos y órdenes del sistema"
           />
 
-          <VendedoresTable
+          <AdminDashboardClient
             vendedores={vendedores}
-          />
-
-          <ProductosTable
             productos={productos}
-          />
-
-          <OrdenesTable
             ordenes={ordenes}
           />
         </div>

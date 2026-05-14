@@ -1,11 +1,13 @@
 interface AdminTableContainerProps {
   title?: string;
   children: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 export function AdminTableContainer({
   title,
   children,
+  footer,
 }: AdminTableContainerProps) {
   return (
     <section className="mb-12">
@@ -17,6 +19,7 @@ export function AdminTableContainer({
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         {children}
+        {footer}
       </div>
     </section>
   );
