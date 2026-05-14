@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 
 interface Props {
   params: Promise<{ producto_id: string }>;
+  searchParams?: Promise<{ from?: string }>;
 }
 
 type ProductoConCategoria = Producto & {
@@ -18,7 +19,7 @@ interface Categoria {
   nombre: string;
 }
 
-export default async function ProductoDetallePage({ params }: Props) {
+export default async function ProductoDetallePage({ params, searchParams }: Props) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -26,6 +27,8 @@ export default async function ProductoDetallePage({ params }: Props) {
   }
   
   const { producto_id } = await params;
+  const query = searchParams ? await searchParams : undefined;
+  const returnPath = query?.from === 'admin' ? '/admin' : '/productos';
 
   // Traer un producto específico de Supabase
   const { data: producto, error } = await supabase
@@ -77,6 +80,7 @@ export default async function ProductoDetallePage({ params }: Props) {
     <ProductoEditForm 
       producto={productoConCategoria as ProductoConCategoria}
       categorias={(categorias as Categoria[]) || []}
+      returnPath={returnPath}
     />
   );
 }

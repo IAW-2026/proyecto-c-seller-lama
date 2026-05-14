@@ -2,10 +2,29 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
+import type { Orden } from '@/types';
 
 type ActionResult = {
   success: boolean;
   message: string;
+};
+
+type UpdateVendedorPayload = {
+  clerk_user_id: string;
+  nombre_vendedor: string;
+  email: string;
+  dni: string;
+  telefono: string | null;
+};
+
+type UpdateOrdenPayload = {
+  orden_id: string;
+  nro_orden: string;
+  total: number;
+  estado_general: Orden['estado_general'];
+  estado_pago: Orden['estado_pago'];
+  estado_envio: Orden['estado_envio'];
+  direccion_envio: string;
 };
 
 export async function deleteProducto(productoId: string): Promise<ActionResult> {
@@ -94,5 +113,63 @@ export async function deleteVendedor(clerkUserId: string): Promise<ActionResult>
   return {
     success: true,
     message: 'Vendedor eliminado exitosamente.',
+  };
+}
+
+export async function updateVendedor(
+  payload: UpdateVendedorPayload
+): Promise<ActionResult> {
+  const { error } = await supabase
+    .from('vendedor')
+    .update({
+      nombre_vendedor: payload.nombre_vendedor,
+      email: payload.email,
+      dni: payload.dni,
+      telefono: payload.telefono,
+    })
+    .eq('clerk_user_id', payload.clerk_user_id);
+
+  if (error) {
+    return {
+      success: false,
+      message: 'No se pudo actualizar el vendedor. Intenta nuevamente.',
+    };
+  }
+
+  revalidatePath('/admin');
+
+  return {
+    success: true,
+    message: 'Vendedor actualizado exitosamente.',
+  };
+}
+
+export async function updateOrden(
+  payload: UpdateOrdenPayload
+): Promise<ActionResult> {
+  const { error } = await supabase
+    .from('orden')
+    .update({
+      nro_orden: payload.nro_orden,
+      total: payload.total,
+      estado_general: payload.estado_general,
+      estado_pago: payload.estado_pago,
+      estado_envio: payload.estado_envio,
+      direccion_envio: payload.direccion_envio,
+    })
+    .eq('orden_id', payload.orden_id);
+
+  if (error) {
+    return {
+      success: false,
+      message: 'No se pudo actualizar la orden. Intenta nuevamente.',
+    };
+  }
+
+  revalidatePath('/admin');
+
+  return {
+    success: true,
+    message: 'Orden actualizada exitosamente.',
   };
 }

@@ -69,7 +69,7 @@ export function ProductosTable({ productos, pagination }: ProductosTableProps) {
 
                   <td className="px-6 py-4 text-sm">
                     <AdminTableActions
-                      editHref={`/productos/${producto.producto_id}`}
+                      editHref={`/productos/${producto.producto_id}?from=admin`}
                       deleteType="producto"
                       deleteId={producto.producto_id}
                     />

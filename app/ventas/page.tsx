@@ -3,10 +3,14 @@ import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { VentasStats } from '@/components/ventas/VentasStats';
-import { VentasTable } from '@/components/ventas/VentasTable';
-import { EmptyVentas } from '@/components/ventas/EmptyVentas';
+import { VentasClient } from '@/components/ventas/VentasClient';
 import type { OrdenConProducto } from '@/types/orden';
+
+type OrdenWithProducto = OrdenConProducto & {
+  producto?: {
+    titulo: string | null;
+  } | null;
+};
 
 export default async function VentasPage() {
   const { userId } = await auth();
@@ -35,24 +39,13 @@ export default async function VentasPage() {
       `)
       .in('producto_id', productIds);
 
-    ordenes =
-      ordenesData?.map((orden: any) => ({
-        ...orden,
-        producto_titulo: orden.producto?.titulo || 'Producto sin título',
-      })) || [];
-  }
+    const typedOrdenes = (ordenesData || []) as OrdenWithProducto[];
 
-  const totalVentas = ordenes.length;
-  const ventasPendientes = ordenes.filter(
-    (orden) => orden.estado_general === 'pendiente_pago'
-  ).length;
-  const ventasCompletas = ordenes.filter(
-    (orden) => orden.estado_general === 'enviada'
-  ).length;
-  const totalIngresos = ordenes.reduce(
-    (sum, orden) => sum + (orden.total || 0),
-    0
-  );
+    ordenes = typedOrdenes.map((orden) => ({
+      ...orden,
+      producto_titulo: orden.producto?.titulo || 'Producto sin titulo',
+    }));
+  }
 
   return (
     <main className="flex-1 bg-[#f6f1e7]">
@@ -63,18 +56,7 @@ export default async function VentasPage() {
             description="Gestiona tus órdenes, pagos y estado de envíos"
           />
 
-          <VentasStats
-            totalVentas={totalVentas}
-            totalIngresos={totalIngresos}
-            ventasPendientes={ventasPendientes}
-            ventasCompletas={ventasCompletas}
-          />
-
-          {ordenes.length > 0 ? (
-            <VentasTable ordenes={ordenes} />
-          ) : (
-            <EmptyVentas />
-          )}
+          <VentasClient ordenes={ordenes} />
         </div>
       </PageContainer>
     </main>

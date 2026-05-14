@@ -55,15 +55,15 @@ export function VentasTable({ ordenes }: VentasTableProps) {
                 </td>
 
                 <td className="px-6 py-4 text-sm">
-                  <StatusBadge status={orden.estado_general?.toLowerCase() as any} />
+                  <StatusBadge status={orden.estado_general} />
                 </td>
 
                 <td className="px-6 py-4 text-sm">
-                  <StatusBadge status={orden.estado_pago?.toLowerCase() as any} />
+                  <StatusBadge status={orden.estado_pago} />
                 </td>
 
                 <td className="px-6 py-4 text-sm">
-                  <StatusBadge status={orden.estado_envio?.toLowerCase() as any} />
+                  <StatusBadge status={orden.estado_envio} />
                 </td>
 
                 <td className="px-6 py-4 text-sm text-slate-600">

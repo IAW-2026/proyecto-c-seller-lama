@@ -24,11 +24,13 @@ interface Categoria {
 interface ProductoEditFormProps {
   producto: Producto;
   categorias?: Categoria[];
+  returnPath?: string;
 }
 
 export function ProductoEditForm({
   producto,
   categorias = [],
+  returnPath = '/productos',
 }: ProductoEditFormProps) {
   const router = useRouter();
   const notification = useNotification();
@@ -107,7 +109,7 @@ export function ProductoEditForm({
               3000
             );
 
-            router.push('/productos');
+            router.push(returnPath);
             router.refresh();
           } catch (error) {
             const errorMessage =
@@ -158,7 +160,7 @@ export function ProductoEditForm({
 
       notification.showSuccess('Producto actualizado exitosamente.', 3000);
 
-      router.push('/productos');
+      router.push(returnPath);
       router.refresh();
     } catch (error) {
       const errorMessage =
@@ -175,10 +177,10 @@ export function ProductoEditForm({
     <main className="min-h-screen bg-[#f6f1e7] p-8">
       <div className="max-w-5xl mx-auto">
         <Link
-          href="/productos"
+          href={returnPath}
           className="text-[#6f7f6d] hover:text-[#37413d] text-sm font-medium mb-8 inline-block transition"
         >
-          ← Volver a productos
+          ← Volver
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
