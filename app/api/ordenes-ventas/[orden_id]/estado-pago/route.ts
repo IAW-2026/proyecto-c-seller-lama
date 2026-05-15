@@ -1,15 +1,63 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { supabase } from '@/lib/supabase';
+import { isEstadoPago, isNonEmptyString, jsonError, parseJson, type EstadoPago } from '@/app/api/_utils';
 
-export async function PATCH(request: Request, props: { params: Promise<{ orden_id: string }> }) {
+type EstadoPagoInput = {
+  estado_pago: EstadoPago;
+  pago_id?: string;
+  motivo?: string;
+};
+
+const toEstadoGeneralFromPago = (estadoPago: EstadoPago) => {
+  if (estadoPago === 'rechazado') return 'cancelada';
+  if (estadoPago === 'aprobado') return 'pagada';
+  return 'pendiente_pago';
+};
+
+/*
+Endpoint para actualizar el estado de pago de una orden de venta específica por su ID.
+*/
+
+export async function PATCH(request: NextRequest, props: { params: Promise<{ orden_id: string }> }) {
   const params = await props.params;
   const { orden_id } = params;
 
-  const respuesta = {
-    orden_id,
-    estado_pago: 'aprobado',
-    estado_general: 'en_preparacion',
-    fecha_actualizacion: '2026-05-03',
-  };
+  if (!isNonEmptyString(orden_id)) {
+    return jsonError('orden_id es requerido', 400);
+  }
 
-  return NextResponse.json(respuesta, { status: 200 });
+  const { data, error } = await parseJson<EstadoPagoInput>(request);
+  if (error) return error;
+  if (!data || !isEstadoPago(data.estado_pago)) {
+    return jsonError('estado_pago invalido', 400);
+  }
+
+  if (!isNonEmptyString(data.pago_id)) {
+    return jsonError('pago_id es requerido', 400);
+  }
+
+  const now = new Date().toISOString();
+  const estado_general = toEstadoGeneralFromPago(data.estado_pago);
+
+  const { data: updated, error: updateError } = await supabase
+    .from('orden')
+    .update({
+      estado_pago: data.estado_pago,
+      estado_general,
+      fecha_actualizacion: now,
+      // NOTE: pago_id/motivo no se persisten si la BD no los soporta.
+    })
+    .eq('orden_id', orden_id)
+    .select('orden_id, estado_pago, estado_general, fecha_actualizacion');
+
+  if (updateError) {
+    return jsonError(updateError.message, 500);
+  }
+
+  const first = updated?.[0];
+  if (!first) {
+    return jsonError('Orden no encontrada', 404);
+  }
+
+  return NextResponse.json(first, { status: 200 });
 }

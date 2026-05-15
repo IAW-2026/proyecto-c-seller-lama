@@ -1,6 +1,6 @@
 export interface Orden {
   orden_id: string;
-  comprador_id: string;
+  clerk_user_id: string;
   nro_orden: string;
   total: number;
   estado_general: 'pendiente_pago' | 'pagada' | 'en_preparacion' | 'enviada' | 'cancelada';
