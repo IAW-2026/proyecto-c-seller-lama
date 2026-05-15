@@ -13,8 +13,6 @@ const isPublicRoute = createRouteMatcher([
 
 // Definir rutas privadas que requieren autenticación
 const isPrivateRoute = createRouteMatcher([
-  '/dashboard',
-  '/dashboard/(.*)',
   '/admin',
   '/admin/(.*)',
   '/productos',
@@ -33,10 +31,10 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Si está autenticado en una ruta pública (sign-in, sign-up)
-  // Redirigir a dashboard después del login
+  // Redirigir a ventas después del login
   if (userId && (req.nextUrl.pathname === '/sign-in' || req.nextUrl.pathname === '/sign-up')) {
-    // Redirigir a dashboard
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+    // Redirigir a ventas
+    return NextResponse.redirect(new URL('/ventas', req.url));
   }
 });
 

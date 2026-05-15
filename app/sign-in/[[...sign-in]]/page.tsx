@@ -38,7 +38,7 @@ export default function SignInPage() {
                   colorBackground: "#f6f1e7",
                 },
               }}
-              fallbackRedirectUrl="/dashboard"
+              fallbackRedirectUrl="/ventas"
             />
           </div>
         </div>

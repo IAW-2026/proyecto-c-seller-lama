@@ -24,18 +24,18 @@ export function Navbar() {
           <nav className="hidden sm:flex items-center gap-8">
             <Show when="signed-in">
               <Link 
-                href="/dashboard" 
+                href="/ventas" 
                 className={`
                   px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
                   hover:bg-[#7a8c78] hover:text-white hover:shadow-md
                   ${
-                    pathname === '/dashboard'
+                    pathname.startsWith('/ventas')
                       ? 'bg-[#6f7f6d] text-white shadow-md'
                       : 'text-[#f6f1e7]'
                   }
                 `}
               >
-                Dashboard
+                Ventas
               </Link>
               <Link 
                 href="/productos" 
@@ -51,20 +51,6 @@ export function Navbar() {
               >
                 Productos
               </Link>
-              <Link 
-              href="/ventas" 
-              className={`
-                px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                hover:bg-[#7a8c78] hover:text-white hover:shadow-md
-                ${
-                  pathname.startsWith('/ventas')
-                    ? 'bg-[#6f7f6d] text-white shadow-md'
-                    : 'text-[#f6f1e7]'
-                }
-              `}
-            >
-              Ventas
-            </Link>
             </Show>
           </nav>
 

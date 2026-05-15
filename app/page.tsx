@@ -47,10 +47,10 @@ export default function Home() {
             <Show when="signed-in">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
-                  href="/dashboard"
+                  href="/ventas"
                   className="px-8 py-3 md:py-4 rounded-xl font-semibold bg-[#8fa18d] text-white hover:bg-[#6f7f6d] transition-all duration-200 active:scale-95 shadow-lg shadow-[#8fa18d]/25"
                 >
-                  Ir a Dashboard
+                  Ir a Ventas
                 </Link>
 
                 <Link
