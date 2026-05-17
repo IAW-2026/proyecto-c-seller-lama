@@ -9,13 +9,6 @@ type EstadoEnvioInput = {
   codigo_seguimiento?: string;
 };
 
-const toEstadoGeneralFromEnvio = (estadoEnvio: EstadoEnvio) => {
-  if (estadoEnvio === 'cancelado') return 'cancelada';
-  if (estadoEnvio === 'en_preparacion') return 'en_preparacion';
-  if (estadoEnvio === 'despachado' || estadoEnvio === 'entregado') return 'enviada';
-  return 'pagada';
-};
-
 /*
 Endpoint para actualizar el estado de envío de una orden de venta específica por su ID.
 */
@@ -34,15 +27,14 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
   }
 
   const now = new Date().toISOString();
-  const estado_general = toEstadoGeneralFromEnvio(data.estado_envio);
 
   const { data: updated, error: updateError } = await supabase
     .from('orden')
     .update({
       estado_envio: data.estado_envio,
-      estado_general,
+      motivo: data.motivo || null,
+      codigo_seguimiento: data.codigo_seguimiento || null,
       fecha_actualizacion: now,
-      // NOTE: motivo/envio_id/codigo_seguimiento no se persisten si la BD no los soporta.
     })
     .eq('orden_id', orden_id)
     .select('orden_id, estado_general, estado_envio, fecha_actualizacion');

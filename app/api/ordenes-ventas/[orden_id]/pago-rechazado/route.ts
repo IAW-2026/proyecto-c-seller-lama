@@ -41,9 +41,9 @@ export async function POST(request: NextRequest, props: { params: Promise<{ orde
     .from('orden')
     .update({
       estado_pago: 'rechazado',
-      estado_general: 'cancelada',
+      motivo: data.motivo_rechazo,
+      fecha_rechazo_pago: data.fecha_rechazo,
       fecha_actualizacion: now,
-      // NOTE: pago_id/motivo_rechazo/fecha_rechazo no se persisten si la BD no los soporta.
     })
     .eq('orden_id', orden_id)
     .select('orden_id, estado_general, estado_pago, fecha_actualizacion');

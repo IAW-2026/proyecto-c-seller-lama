@@ -1,6 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { isEstadoPago, isNonEmptyString, jsonError, parseJson, type EstadoPago } from '@/app/api/_utils';
+import {
+  isEstadoPago,
+  isNonEmptyString,
+  jsonError,
+  parseJson,
+  type EstadoPago,
+} from '@/app/api/_utils';
 
 type EstadoPagoInput = {
   estado_pago: EstadoPago;
@@ -8,17 +14,13 @@ type EstadoPagoInput = {
   motivo?: string;
 };
 
-const toEstadoGeneralFromPago = (estadoPago: EstadoPago) => {
-  if (estadoPago === 'rechazado') return 'cancelada';
-  if (estadoPago === 'aprobado') return 'pagada';
-  return 'pendiente_pago';
-};
-
 /*
 Endpoint para actualizar el estado de pago de una orden de venta específica por su ID.
 */
-
-export async function PATCH(request: NextRequest, props: { params: Promise<{ orden_id: string }> }) {
+export async function PATCH(
+  request: NextRequest,
+  props: { params: Promise<{ orden_id: string }> }
+) {
   const params = await props.params;
   const { orden_id } = params;
 
@@ -27,7 +29,9 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
   }
 
   const { data, error } = await parseJson<EstadoPagoInput>(request);
+
   if (error) return error;
+
   if (!data || !isEstadoPago(data.estado_pago)) {
     return jsonError('estado_pago invalido', 400);
   }
@@ -37,15 +41,13 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
   }
 
   const now = new Date().toISOString();
-  const estado_general = toEstadoGeneralFromPago(data.estado_pago);
 
   const { data: updated, error: updateError } = await supabase
     .from('orden')
     .update({
       estado_pago: data.estado_pago,
-      estado_general,
+      motivo: data.motivo || null,
       fecha_actualizacion: now,
-      // NOTE: pago_id/motivo no se persisten si la BD no los soporta.
     })
     .eq('orden_id', orden_id)
     .select('orden_id, estado_pago, estado_general, fecha_actualizacion');
@@ -55,6 +57,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
   }
 
   const first = updated?.[0];
+
   if (!first) {
     return jsonError('Orden no encontrada', 404);
   }

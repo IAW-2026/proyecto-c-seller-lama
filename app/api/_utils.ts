@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+/*
+Sirve para no repetir validaciones y respuestas en todos los route handlers.
+*/
+
 type JsonError = {
   error: string;
 };

@@ -79,7 +79,6 @@ export async function POST(request: NextRequest) {
     clerk_user_id,
     producto_id: item.producto_id,
     total: precio_total,
-    estado_general: 'pagada',
     estado_pago: 'aprobado',
     estado_envio: 'pendiente',
     direccion_envio,

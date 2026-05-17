@@ -17,17 +17,15 @@ export async function GET(request: NextRequest, props: { params: Promise<{ orden
     .from('orden')
     .select('orden_id, estado_general, estado_pago, estado_envio, fecha_actualizacion')
     .eq('orden_id', orden_id)
-    .order('fecha_actualizacion', { ascending: false })
-    .limit(1);
+    .single();
 
   if (error) {
     return jsonError(error.message, 500);
   }
 
-  const orden = data?.[0];
-  if (!orden) {
+  if (!data) {
     return jsonError('Orden no encontrada', 404);
   }
 
-  return NextResponse.json(orden, { status: 200 });
+  return NextResponse.json(data, { status: 200 });
 }

@@ -22,13 +22,15 @@ export async function GET(
     .from('producto')
     .select('*')
     .eq('producto_id', producto_id)
+    .eq('estado_publicacion', 'activa')
     .single();
 
-  if (error || !producto) {
-    return NextResponse.json(
-      { error: error?.message || 'Producto no encontrado' },
-      { status: error?.code === 'PGRST116' ? 404 : 500 }
-    );
+  if (error) {
+    return jsonError(error.message, 404);
+  }
+
+  if (!producto) {
+    return jsonError('Producto no encontrado', 404);
   }
 
   const response = producto as Producto;
