@@ -1,9 +1,21 @@
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import type { OrdenConProducto } from '@/types/orden';
+import type { OrdenConItems } from '@/types/orden';
 
 interface VentasTableProps {
-  ordenes: OrdenConProducto[];
+  ordenes: OrdenConItems[];
 }
+
+const formatProductos = (items: OrdenConItems['items']) => {
+  if (items.length === 0) return 'Sin productos';
+
+  const titles = items.map(
+    (item) => item.producto?.titulo || 'Producto sin titulo'
+  );
+
+  if (titles.length === 1) return titles[0];
+
+  return `${titles[0]} +${titles.length - 1}`;
+};
 
 export function VentasTable({ ordenes }: VentasTableProps) {
   return (
@@ -47,7 +59,7 @@ export function VentasTable({ ordenes }: VentasTableProps) {
                 </td>
 
                 <td className="px-6 py-4 text-sm text-slate-600">
-                  {orden.producto_titulo}
+                  {formatProductos(orden.items)}
                 </td>
 
                 <td className="px-6 py-4 text-sm font-semibold text-slate-900">

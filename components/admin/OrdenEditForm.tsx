@@ -2,31 +2,18 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Orden } from '@/types';
+import {
+  type Orden,
+  ESTADO_ENVIO_VALUES,
+  ESTADO_GENERAL_VALUES,
+  ESTADO_PAGO_VALUES,
+} from '@/types/orden';
 import { useNotification } from '@/hooks/useNotification';
 import { updateOrden } from '@/actions/adminActions';
 
-const ESTADOS_GENERALES: Orden['estado_general'][] = [
-  'pendiente_pago',
-  'pagada',
-  'en_preparacion',
-  'enviada',
-  'cancelada',
-];
-
-const ESTADOS_PAGO: Orden['estado_pago'][] = [
-  'pendiente',
-  'aprobado',
-  'rechazado',
-];
-
-const ESTADOS_ENVIO: Orden['estado_envio'][] = [
-  'pendiente',
-  'en_preparacion',
-  'despachado',
-  'entregado',
-  'cancelado',
-];
+const ESTADOS_GENERALES = ESTADO_GENERAL_VALUES;
+const ESTADOS_PAGO = ESTADO_PAGO_VALUES;
+const ESTADOS_ENVIO = ESTADO_ENVIO_VALUES;
 
 interface OrdenEditFormProps {
   orden: Orden;

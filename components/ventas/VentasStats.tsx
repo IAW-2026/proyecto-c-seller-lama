@@ -7,6 +7,7 @@ interface VentasStatsProps {
   totalIngresos: number;
   ventasPendientes: number;
   ventasCompletas: number;
+  ventasCanceladas: number;
 }
 
 export function VentasStats({
@@ -14,9 +15,10 @@ export function VentasStats({
   totalIngresos,
   ventasPendientes,
   ventasCompletas,
+  ventasCanceladas,
 }: VentasStatsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
       <StatCard
         variant="soft"
         label="Total de ventas"
@@ -101,6 +103,29 @@ export function VentasStats({
           >
             <circle cx="12" cy="12" r="9" />
             <path d="M8 12l2.5 2.5L16 9" />
+          </svg>
+        }
+      />
+
+      <StatCard
+        variant="soft"
+        label="Canceladas"
+        value={ventasCanceladas}
+        borderColor="#8fa18d"
+        icon={
+          <svg
+            className={iconClassName}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M9 9l6 6" />
+            <path d="M15 9l-6 6" />
           </svg>
         }
       />

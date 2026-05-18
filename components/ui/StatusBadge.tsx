@@ -17,6 +17,7 @@ type StatusType =
   | 'pagada'
   | 'en_preparacion'
   | 'enviada'
+  | 'completada'
   | 'cancelada'
   | 'despachado'
   | 'entregado'
@@ -104,6 +105,12 @@ const statusConfig: Record<
     text: 'text-indigo-700',
     icon: '→',
     label: 'Enviada',
+  },
+  completada: {
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+    icon: '✓',
+    label: 'Completada',
   },
   cancelada: {
     bg: 'bg-red-50',

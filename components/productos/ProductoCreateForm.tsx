@@ -9,6 +9,7 @@ import { useNotification } from '@/hooks/useNotification';
 import {
   uploadProductImages,
   createProduct,
+  createCategoriaProducto,
 } from '@/lib/supabase-products';
 import { validateProductForm } from '@/lib/product-utils';
 import type { ProductFormData } from '@/types/producto';
@@ -44,6 +45,49 @@ export function ProductoCreateForm({
     imagenPrincipal,
   } = useImageUpload();
   const [isSaving, setIsSaving] = useState(false);
+  const [localCategorias, setLocalCategorias] = useState<Categoria[]>(categorias);
+  const [isCategoriaModalOpen, setIsCategoriaModalOpen] = useState(false);
+  const [categoriaNombre, setCategoriaNombre] = useState('');
+  const [isCreatingCategoria, setIsCreatingCategoria] = useState(false);
+
+  const openCategoriaModal = () => {
+    setCategoriaNombre('');
+    setIsCategoriaModalOpen(true);
+  };
+
+  const closeCategoriaModal = () => {
+    setIsCategoriaModalOpen(false);
+  };
+
+  const handleCreateCategoria = async () => {
+    const nombre = categoriaNombre.trim();
+
+    if (!nombre) {
+      notification.showError('El nombre de la categoria es obligatorio.');
+      return;
+    }
+
+    setIsCreatingCategoria(true);
+
+    try {
+      const nuevaCategoria = await createCategoriaProducto(nombre);
+      setLocalCategorias((prev) => [...prev, nuevaCategoria]);
+      setFormData((prev) => ({
+        ...prev,
+        categoria_id: nuevaCategoria.categoria_producto_id,
+      }));
+      notification.showSuccess('Categoria creada exitosamente.', 3000);
+      closeCategoriaModal();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Error al crear la categoria';
+      notification.showError(errorMessage);
+    } finally {
+      setIsCreatingCategoria(false);
+    }
+  };
 
   const handleCreate = async () => {
     // Validar formulario
@@ -144,10 +188,11 @@ export function ProductoCreateForm({
               {/* Campos del formulario */}
               <ProductFormFields
                 formData={formData}
-                categorias={categorias}
+                categorias={localCategorias}
                 onInputChange={handleChange}
                 onPriceChange={handlePriceChange}
                 errors={errors}
+                onCreateCategory={openCategoriaModal}
               />
 
               {/* Botones de acción */}
@@ -156,6 +201,45 @@ export function ProductoCreateForm({
           </div>
         </div>
       </div>
+
+      {isCategoriaModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl border border-[#d8cfbd] bg-[#f6f1e7] p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-[#37413d] mb-4">
+              Nueva categoria
+            </h2>
+
+            <label className="block text-sm font-medium text-[#37413d] mb-2">
+              Nombre de la categoria
+            </label>
+            <input
+              type="text"
+              value={categoriaNombre}
+              onChange={(event) => setCategoriaNombre(event.target.value)}
+              placeholder="Ej: Accesorios"
+              className="w-full rounded-lg border border-[#d8cfbd] bg-white px-4 py-2 text-sm text-[#37413d] outline-none focus:border-[#8fa18d]"
+            />
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeCategoriaModal}
+                className="rounded-lg border border-[#d8cfbd] bg-white px-4 py-2 text-sm font-semibold text-[#37413d] transition hover:bg-[#ede6d8]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateCategoria}
+                disabled={isCreatingCategoria}
+                className="rounded-lg border border-[#8fa18d] bg-[#8fa18d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#7e937c] disabled:opacity-60"
+              >
+                {isCreatingCategoria ? 'Creando...' : 'Crear'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

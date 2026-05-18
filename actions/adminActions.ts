@@ -29,15 +29,17 @@ type UpdateOrdenPayload = {
 
 export async function deleteProducto(productoId: string): Promise<ActionResult> {
   const { data: ordenesAsociadas } = await supabase
-    .from('orden')
-    .select('nro_orden')
+    .from('orden_item')
+    .select('orden_id, orden:orden_id (nro_orden)')
     .eq('producto_id', productoId)
     .limit(1);
 
   if (ordenesAsociadas && ordenesAsociadas.length > 0) {
+    const orden = ordenesAsociadas[0].orden as { nro_orden?: string } | null;
+    const ordenLabel = orden?.nro_orden ? ` ${orden.nro_orden}` : '';
     return {
       success: false,
-      message: `No se puede eliminar este producto porque tiene órdenes asociadas. Primero elimina la orden ${ordenesAsociadas[0].nro_orden}.`,
+      message: `No se puede eliminar este producto porque tiene ordenes asociadas. Primero elimina la orden${ordenLabel}.`,
     };
   }
 
@@ -62,6 +64,18 @@ export async function deleteProducto(productoId: string): Promise<ActionResult> 
 }
 
 export async function deleteOrden(ordenId: string): Promise<ActionResult> {
+  const { error: itemsError } = await supabase
+    .from('orden_item')
+    .delete()
+    .eq('orden_id', ordenId);
+
+  if (itemsError) {
+    return {
+      success: false,
+      message: 'No se pudo eliminar los items de la orden. Intenta nuevamente.',
+    };
+  }
+
   const { error } = await supabase
     .from('orden')
     .delete()

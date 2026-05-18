@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { ESTADO_ENVIO, ESTADO_GENERAL } from '@/types/orden';
 import { isEstadoEnvio, isNonEmptyString, jsonError, parseJson, type EstadoEnvio } from '@/app/api/_utils';
 
 type EstadoEnvioInput = {
@@ -27,11 +28,18 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
   }
 
   const now = new Date().toISOString();
+  const estadoGeneralMap: Partial<Record<EstadoEnvio, string>> = {
+    [ESTADO_ENVIO.DESPACHADO]: ESTADO_GENERAL.ENVIADA,
+    [ESTADO_ENVIO.ENTREGADO]: ESTADO_GENERAL.COMPLETADA,
+    [ESTADO_ENVIO.CANCELADO]: ESTADO_GENERAL.CANCELADA,
+  };
+  const estadoGeneral = estadoGeneralMap[data.estado_envio] || null;
 
   const { data: updated, error: updateError } = await supabase
     .from('orden')
     .update({
       estado_envio: data.estado_envio,
+      ...(estadoGeneral ? { estado_general: estadoGeneral } : {}),
       motivo: data.motivo || null,
       codigo_seguimiento: data.codigo_seguimiento || null,
       fecha_actualizacion: now,

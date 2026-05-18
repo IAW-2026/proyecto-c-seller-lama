@@ -149,3 +149,20 @@ export const deleteProduct = async (
     throw new Error(`Error al eliminar producto: ${error.message}`);
   }
 };
+
+/**
+ * Crea una nueva categoria de producto
+ */
+export const createCategoriaProducto = async (nombre: string) => {
+  const { data, error } = await supabase
+    .from('categoria_producto')
+    .insert({ nombre })
+    .select('categoria_producto_id, nombre')
+    .single();
+
+  if (error || !data) {
+    throw new Error(`Error al crear categoria: ${error?.message || 'sin datos'}`);
+  }
+
+  return data as { categoria_producto_id: string; nombre: string };
+};

@@ -1,14 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { OrdenConProducto } from '@/types/orden';
+import { ESTADO_GENERAL, type OrdenConItems } from '@/types/orden';
 import { AdminFilters } from '@/components/admin/AdminFilters';
 import { VentasStats } from '@/components/ventas/VentasStats';
 import { VentasTable } from '@/components/ventas/VentasTable';
 import { EmptyVentas } from '@/components/ventas/EmptyVentas';
 
 interface VentasClientProps {
-  ordenes: OrdenConProducto[];
+  ordenes: OrdenConItems[];
 }
 
 const normalizeText = (value: string) => value.trim().toLowerCase();
@@ -46,7 +46,7 @@ export function VentasClient({ ordenes }: VentasClientProps) {
           matchesText(orden.estado_general, term) ||
           matchesText(orden.estado_pago, term) ||
           matchesText(orden.estado_envio, term) ||
-          matchesText(orden.producto_titulo, term);
+          orden.items.some((item) => matchesText(item.producto?.titulo, term));
 
         if (!matchesOrden) return false;
       }
@@ -62,17 +62,34 @@ export function VentasClient({ ordenes }: VentasClientProps) {
     });
   }, [ordenes, search, from, to]);
 
-  const totalVentas = filteredOrdenes.length;
-  const ventasPendientes = filteredOrdenes.filter(
-    (orden) => orden.estado_general === 'pendiente_pago'
-  ).length;
-  const ventasCompletas = filteredOrdenes.filter(
-    (orden) => orden.estado_general === 'enviada'
-  ).length;
-  const totalIngresos = filteredOrdenes.reduce(
-    (sum, orden) => sum + (orden.total || 0),
-    0
-  );
+  const filteredItems = filteredOrdenes.flatMap((orden) => orden.items);
+
+  const totalVentas = filteredItems.length;
+  const ventasCompletas = filteredOrdenes.reduce((count, orden) => {
+    if (orden.estado_general !== ESTADO_GENERAL.COMPLETADA) return count;
+    return count + orden.items.length;
+  }, 0);
+  const ventasCanceladas = filteredOrdenes.reduce((count, orden) => {
+    if (orden.estado_general !== ESTADO_GENERAL.CANCELADA) return count;
+    return count + orden.items.length;
+  }, 0);
+  const ventasPendientes = filteredOrdenes.reduce((count, orden) => {
+    if (
+      orden.estado_general === ESTADO_GENERAL.COMPLETADA ||
+      orden.estado_general === ESTADO_GENERAL.CANCELADA
+    ) {
+      return count;
+    }
+    return count + orden.items.length;
+  }, 0);
+  const totalIngresos = filteredOrdenes.reduce((sum, orden) => {
+    if (orden.estado_general !== ESTADO_GENERAL.COMPLETADA) return sum;
+    const ordenTotal = orden.items.reduce(
+      (ordenSum, item) => ordenSum + (item.precio_unitario || 0),
+      0
+    );
+    return sum + ordenTotal;
+  }, 0);
 
   return (
     <>
@@ -81,6 +98,7 @@ export function VentasClient({ ordenes }: VentasClientProps) {
         totalIngresos={totalIngresos}
         ventasPendientes={ventasPendientes}
         ventasCompletas={ventasCompletas}
+        ventasCanceladas={ventasCanceladas}
       />
 
       <AdminFilters

@@ -106,7 +106,7 @@ export default async function ProductosPage({
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-300 rounded-lg p-8 text-center text-slate-600">
-              No hay productos disponibles para este filtro
+              No hay productos disponibles 
             </div>
           )}
         </div>

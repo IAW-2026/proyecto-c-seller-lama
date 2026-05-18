@@ -17,7 +17,10 @@ interface ProductFormFieldsProps {
   ) => void;
   onPriceChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   errors?: Record<string, string>;
+  onCreateCategory?: () => void;
 }
+
+const CREATE_CATEGORY_VALUE = '__crear_categoria__';
 
 function FormField({
   label,
@@ -48,7 +51,19 @@ export function ProductFormFields({
   onInputChange,
   onPriceChange,
   errors = {},
+  onCreateCategory,
 }: ProductFormFieldsProps) {
+  const handleCategoriaChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    if (event.target.value === CREATE_CATEGORY_VALUE) {
+      onCreateCategory?.();
+      return;
+    }
+
+    onInputChange(event);
+  };
+
   return (
     <div className="space-y-6">
       {/* Título */}
@@ -79,7 +94,7 @@ export function ProductFormFields({
         <select
           name="categoria_id"
           value={formData.categoria_id}
-          onChange={onInputChange}
+          onChange={handleCategoriaChange}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
         >
           <option value="">Seleccionar categoría</option>
@@ -94,6 +109,11 @@ export function ProductFormFields({
             ))
           ) : (
             <option disabled>Cargando categorías...</option>
+          )}
+          {onCreateCategory && (
+            <option value={CREATE_CATEGORY_VALUE}>
+              Crear nueva categoria
+            </option>
           )}
         </select>
       </FormField>

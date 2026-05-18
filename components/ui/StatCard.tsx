@@ -44,7 +44,7 @@ export function StatCard({
 
           {icon && (
             <div
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl shadow-sm"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-base shadow-sm self-start -mt-1 -mr-1"
               style={{ backgroundColor: primaryColor }}
             >
               {icon}
@@ -73,7 +73,7 @@ export function StatCard({
 
           {icon && (
             <div
-              className="h-12 w-12 rounded-xl flex items-center justify-center border shadow-sm transition-all duration-300 group-hover:scale-105"
+              className="h-10 w-10 rounded-xl flex items-center justify-center border shadow-sm transition-all duration-300 group-hover:scale-105 self-start -mt-1 -mr-1"
               style={{
                 backgroundColor: '#8fa18d',
                 borderColor: '#7a8c78',
@@ -116,7 +116,7 @@ export function StatCard({
 
         {icon && (
           <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ml-4 text-white"
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-base flex-shrink-0 ml-4 text-white self-start -mt-1 -mr-1"
             style={{ backgroundColor: primaryColor }}
           >
             {icon}

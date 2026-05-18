@@ -33,7 +33,6 @@ export function ProductoCard({ producto }: ProductoCardProps) {
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center text-[#6f7f6d] bg-[#f6f1e7]">
               <span className="text-sm font-medium">Sin imagen</span>
-              <span className="text-xs mt-1">Producto no disponible</span>
             </div>
           )}
           {isVendido && (
