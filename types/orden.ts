@@ -18,6 +18,12 @@ export const ESTADO_GENERAL = {
 
 export const ESTADO_PAGO_VALUES = ['pendiente', 'aprobado', 'rechazado'] as const;
 
+export const ESTADO_PAGO = {
+  PENDIENTE: 'pendiente',
+  APROBADO: 'aprobado',
+  RECHAZADO: 'rechazado',
+} as const;
+
 export const ESTADO_ENVIO_VALUES = [
   'pendiente',
   'en_preparacion',

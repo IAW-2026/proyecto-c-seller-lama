@@ -1,6 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useNotification } from '@/hooks/useNotification';
+import { despacharOrden } from '@/lib/ordenes';
 import { ESTADO_GENERAL, type OrdenConItems } from '@/types/orden';
 import { AdminFilters } from '@/components/admin/AdminFilters';
 import { VentasStats } from '@/components/ventas/VentasStats';
@@ -29,9 +32,12 @@ const endOfDay = (date: Date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
 
 export function VentasClient({ ordenes }: VentasClientProps) {
+  const router = useRouter();
+  const notification = useNotification();
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
+  const [despachandoId, setDespachandoId] = useState<string | null>(null);
 
   const filteredOrdenes = useMemo(() => {
     const term = normalizeText(search);
@@ -91,6 +97,25 @@ export function VentasClient({ ordenes }: VentasClientProps) {
     return sum + ordenTotal;
   }, 0);
 
+  const handleDespachar = async (orden: OrdenConItems) => {
+    if (despachandoId) return;
+    setDespachandoId(orden.orden_id);
+
+    try {
+      await despacharOrden(orden.orden_id);
+      notification.showSuccess('Orden despachada exitosamente.', 3000);
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'No se pudo despachar la orden.';
+      notification.showError(message);
+    } finally {
+      setDespachandoId(null);
+    }
+  };
+
   return (
     <>
       <VentasStats
@@ -118,7 +143,11 @@ export function VentasClient({ ordenes }: VentasClientProps) {
       />
 
       {filteredOrdenes.length > 0 ? (
-        <VentasTable ordenes={filteredOrdenes} />
+        <VentasTable
+          ordenes={filteredOrdenes}
+          onDespachar={handleDespachar}
+          despachandoId={despachandoId}
+        />
       ) : (
         <EmptyVentas />
       )}

@@ -1,0 +1,25 @@
+type DespacharOrdenResponse = {
+  orden_id: string;
+  envio_id?: string;
+  empresa_logistica?: string;
+  codigo_seguimiento?: string;
+  estado?: string;
+  estado_envio?: string;
+};
+
+export const despacharOrden = async (
+  ordenId: string
+): Promise<DespacharOrdenResponse> => {
+  const response = await fetch(`/api/ordenes/${ordenId}/despachar`, {
+    method: 'POST',
+  });
+
+  const data = (await response.json()) as DespacharOrdenResponse | { error?: string };
+
+  if (!response.ok) {
+    const message = 'error' in data && data.error ? data.error : 'Error al despachar la orden';
+    throw new Error(message);
+  }
+
+  return data as DespacharOrdenResponse;
+};

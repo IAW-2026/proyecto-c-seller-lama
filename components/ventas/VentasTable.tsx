@@ -1,8 +1,10 @@
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import type { OrdenConItems } from '@/types/orden';
+import { ESTADO_ENVIO, ESTADO_PAGO, type OrdenConItems } from '@/types/orden';
 
 interface VentasTableProps {
   ordenes: OrdenConItems[];
+  onDespachar: (orden: OrdenConItems) => void;
+  despachandoId?: string | null;
 }
 
 const formatProductos = (items: OrdenConItems['items']) => {
@@ -17,7 +19,20 @@ const formatProductos = (items: OrdenConItems['items']) => {
   return `${titles[0]} +${titles.length - 1}`;
 };
 
-export function VentasTable({ ordenes }: VentasTableProps) {
+const PuedeDespachar = (orden: OrdenConItems) => {
+  if (orden.estado_pago !== ESTADO_PAGO.APROBADO) return false;
+  return ![
+    ESTADO_ENVIO.DESPACHADO,
+    ESTADO_ENVIO.ENTREGADO,
+    ESTADO_ENVIO.CANCELADO,
+  ].includes(orden.estado_envio);
+};
+
+export function VentasTable({
+  ordenes,
+  onDespachar,
+  despachandoId,
+}: VentasTableProps) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <div className="overflow-x-auto">
@@ -44,6 +59,9 @@ export function VentasTable({ ordenes }: VentasTableProps) {
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                 Fecha
+              </th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
+                Acciones
               </th>
             </tr>
           </thead>
@@ -80,6 +98,23 @@ export function VentasTable({ ordenes }: VentasTableProps) {
 
                 <td className="px-6 py-4 text-sm text-slate-600">
                   {new Date(orden.fecha_creacion).toLocaleDateString('es-AR')}
+                </td>
+
+                <td className="px-6 py-4 text-sm">
+                  {PuedeDespachar(orden) ? (
+                    <button
+                      type="button"
+                      onClick={() => onDespachar(orden)}
+                      disabled={despachandoId === orden.orden_id}
+                      className="rounded-lg border border-[#8fa18d] bg-[#8fa18d] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#7e937c] disabled:opacity-60"
+                    >
+                      {despachandoId === orden.orden_id
+                        ? 'Despachando...'
+                        : 'Despachar'}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-slate-400">-</span>
+                  )}
                 </td>
               </tr>
             ))}
