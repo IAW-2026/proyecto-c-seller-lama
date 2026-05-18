@@ -1,16 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import {
-  isEstadoLiquidacion,
-  isNonEmptyString,
-  jsonError,
-  parseJson,
-  type EstadoLiquidacion,
-} from '@/app/api/_utils';
+import { isNonEmptyString, jsonError, parseJson } from '@/app/api/_utils';
 
 type LiquidacionInput = {
-  estado_liquidacion_vendedor: EstadoLiquidacion;
-  fecha_liquidacion_vendedor?: string;
+  fecha_actualizacion?: string;
 };
 
 export async function PATCH(
@@ -26,36 +19,35 @@ export async function PATCH(
 
   const { data, error } = await parseJson<LiquidacionInput>(request);
   if (error) return error;
-  if (!data || !isEstadoLiquidacion(data.estado_liquidacion_vendedor)) {
-    return jsonError('estado_liquidacion_vendedor invalido', 400);
-  }
 
-  const now = new Date().toISOString();
-  const fechaLiquidacion =
-    data.fecha_liquidacion_vendedor && isNonEmptyString(data.fecha_liquidacion_vendedor)
-      ? data.fecha_liquidacion_vendedor
-      : null;
+  const fechaActualizacion =
+    data?.fecha_actualizacion && isNonEmptyString(data.fecha_actualizacion)
+      ? data.fecha_actualizacion
+      : new Date().toISOString();
 
   const { data: updated, error: updateError } = await supabase
     .from('orden')
     .update({
-      estado_liquidacion_vendedor: data.estado_liquidacion_vendedor,
-      fecha_liquidacion_vendedor: fechaLiquidacion,
-      fecha_actualizacion: now,
+      estado_liquidacion_vendedor: 'pagada',
+      fecha_liquidacion_vendedor: fechaActualizacion,
+      fecha_actualizacion: fechaActualizacion,
     })
     .eq('orden_id', orden_id)
-    .select(
-      'orden_id, estado_liquidacion_vendedor, fecha_liquidacion_vendedor, fecha_actualizacion'
-    );
+    .select('orden_id')
+    .single();
 
   if (updateError) {
     return jsonError(updateError.message, 500);
   }
 
-  const first = updated?.[0];
-  if (!first) {
+  if (!updated) {
     return jsonError('Orden no encontrada', 404);
   }
 
-  return NextResponse.json(first, { status: 200 });
+  return NextResponse.json(
+    {
+      mensaje: 'liquidacion registrada correctamente',
+    },
+    { status: 200 }
+  );
 }

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import type { OrdenConItems } from '@/types';
+import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, isNumber, jsonError, parseJson } from '@/app/api/_utils';
 
 type OrdenItemInput = {
@@ -10,10 +11,9 @@ type OrdenItemInput = {
 
 type OrdenCreateInput = {
   orden_id: string;
-  clerk_user_id: string;
+  comprador_id: string;
   items: OrdenItemInput[];
   precio_total: number;
-  pago_id: string;
   direccion_envio: string;
 };
 
@@ -43,17 +43,20 @@ const ordenSelect = `
   )
 `;
 
+/*
+Endpoint para crear una nueva orden de venta 
+*/
 export async function POST(request: NextRequest) {
   const { data, error } = await parseJson<OrdenCreateInput>(request);
 
   if (error) return error;
   if (!data) return jsonError('Body requerido', 400);
 
-  const { orden_id, clerk_user_id, items, precio_total, pago_id, direccion_envio } = data;
+  const { orden_id, comprador_id, items, precio_total, direccion_envio } = data;
 
   if (!isNonEmptyString(orden_id)) return jsonError('orden_id es requerido', 400);
 
-  if (!isNonEmptyString(clerk_user_id)) return jsonError('clerk_user_id es requerido', 400);
+  if (!isNonEmptyString(comprador_id)) return jsonError('comprador_id es requerido', 400);
 
   if (!Array.isArray(items) || items.length === 0) {
     return jsonError('items debe tener al menos un elemento', 400);
@@ -67,8 +70,6 @@ export async function POST(request: NextRequest) {
     return jsonError('precio_total es requerido', 400);
   }
 
-  if (!isNonEmptyString(pago_id)) return jsonError('pago_id es requerido', 400);
-  
   if (!isNonEmptyString(direccion_envio)) {
     return jsonError('direccion_envio es requerido', 400);
   }
@@ -80,10 +81,7 @@ export async function POST(request: NextRequest) {
     return jsonError('No se puede repetir el mismo producto en una orden', 400);
   }
 
-  const calculatedTotal = items.reduce(
-    (sum, item) => sum + item.precio_unitario,
-    0
-  );
+  const calculatedTotal = items.reduce((sum, item) => sum + item.precio_unitario, 0);
 
   if (calculatedTotal !== precio_total) {
     return jsonError('precio_total no coincide con la suma de los items', 400);
@@ -127,17 +125,19 @@ export async function POST(request: NextRequest) {
   }
 
   const now = new Date().toISOString();
+  const vendedorId = productosEncontrados[0]?.clerk_user_id;
 
   const { data: createdOrden, error: insertOrdenError } = await supabase
     .from('orden')
     .insert({
       orden_id,
       nro_orden: orden_id,
-      clerk_user_id,
+      comprador_id,
+      clerk_user_id: vendedorId,
       total: precio_total,
-      pago_id,
-      estado_pago: 'aprobado',
-      estado_envio: 'pendiente',
+      estado_general: ESTADO_GENERAL.PENDIENTE_PAGO,
+      estado_pago: ESTADO_PAGO.PENDIENTE,
+      estado_envio: ESTADO_ENVIO.PENDIENTE,
       direccion_envio,
       fecha_creacion: now,
       fecha_actualizacion: now,
@@ -161,6 +161,7 @@ export async function POST(request: NextRequest) {
     .insert(ordenItems);
 
   if (insertItemsError) {
+    await supabase.from('orden').delete().eq('orden_id', orden_id);
     return jsonError(insertItemsError.message, 500);
   }
 
@@ -170,30 +171,10 @@ export async function POST(request: NextRequest) {
     .in('producto_id', productIds);
 
   if (updateProductosError) {
+    await supabase.from('orden_item').delete().eq('orden_id', orden_id);
+    await supabase.from('orden').delete().eq('orden_id', orden_id);
     return jsonError(updateProductosError.message, 500);
   }
 
-  const { data: ordenCompleta, error: fetchError } = await supabase
-    .from('orden')
-    .select(ordenSelect)
-    .eq('orden_id', orden_id)
-    .single();
-
-  if (fetchError || !ordenCompleta) {
-    return jsonError(fetchError?.message || 'No se pudo cargar la orden creada', 500);
-  }
-
-  return NextResponse.json(ordenCompleta, { status: 201 });
-}
-
-export async function GET(request: NextRequest) {
-  const { data: ordenes, error } = await supabase
-    .from('orden')
-    .select(ordenSelect);
-
-  if (error) {
-    return jsonError(error.message, 500);
-  }
-
-  return NextResponse.json((ordenes || []) as OrdenConItems[], { status: 200 });
+  return NextResponse.json(createdOrden, { status: 201 });
 }
