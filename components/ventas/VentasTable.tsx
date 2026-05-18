@@ -19,13 +19,16 @@ const formatProductos = (items: OrdenConItems['items']) => {
   return `${titles[0]} +${titles.length - 1}`;
 };
 
+const estadosNoDespachables: string[] = [
+  ESTADO_ENVIO.DESPACHADO,
+  ESTADO_ENVIO.ENTREGADO,
+  ESTADO_ENVIO.CANCELADO,
+];
+
 const PuedeDespachar = (orden: OrdenConItems) => {
   if (orden.estado_pago !== ESTADO_PAGO.APROBADO) return false;
-  return ![
-    ESTADO_ENVIO.DESPACHADO,
-    ESTADO_ENVIO.ENTREGADO,
-    ESTADO_ENVIO.CANCELADO,
-  ].includes(orden.estado_envio);
+
+  return !estadosNoDespachables.includes(orden.estado_envio);
 };
 
 export function VentasTable({

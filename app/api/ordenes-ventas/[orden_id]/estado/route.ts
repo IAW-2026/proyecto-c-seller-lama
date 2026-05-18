@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, props: { params: Promise<{ orden
       vendedor_id: data.clerk_user_id,
       items: items.map((item) => ({
         producto_id: item.producto_id,
-        titulo_producto: item.producto?.titulo ?? null,
+        titulo_producto: item.producto?.[0]?.titulo,
         precio_producto: item.precio_unitario,
       })),
       total: data.total,
