@@ -8,7 +8,14 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in/(.*)',
   '/sign-up',
   '/sign-up/(.*)',
-  '/api/webhooks(.*)',
+  '/api/webhooks/clerk',
+]);
+
+const isAuthRoute = createRouteMatcher([
+  '/sign-in',
+  '/sign-in/(.*)',
+  '/sign-up',
+  '/sign-up/(.*)',
 ]);
 
 // Definir rutas privadas que requieren autenticación
@@ -32,8 +39,7 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Si está autenticado en una ruta pública (sign-in, sign-up)
   // Redirigir a ventas después del login
-  if (userId && (req.nextUrl.pathname === '/sign-in' || req.nextUrl.pathname === '/sign-up')) {
-    // Redirigir a ventas
+  if (userId && isAuthRoute(req)) {
     return NextResponse.redirect(new URL('/ventas', req.url));
   }
 });

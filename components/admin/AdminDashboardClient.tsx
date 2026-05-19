@@ -74,8 +74,7 @@ export function AdminDashboardClient({
 
     return vendedores.filter((vendedor) =>
       matchesText(vendedor.nombre_vendedor, term) ||
-      matchesText(vendedor.email, term) ||
-      matchesText(vendedor.dni, term)
+      matchesText(vendedor.email, term)
     );
   }, [vendedores, vendedorSearch]);
 
@@ -185,7 +184,7 @@ export function AdminDashboardClient({
       <AdminFilters
         value={vendedorSearch}
         onChange={setVendedorSearch}
-        placeholder="Buscar vendedor por nombre, email o DNI"
+        placeholder="Buscar vendedor por nombre o email"
         onClear={() => setVendedorSearch('')}
       />
 

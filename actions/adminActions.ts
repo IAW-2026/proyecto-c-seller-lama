@@ -13,7 +13,6 @@ type UpdateVendedorPayload = {
   clerk_user_id: string;
   nombre_vendedor: string;
   email: string;
-  dni: string;
   telefono: string | null;
 };
 
@@ -138,7 +137,6 @@ export async function updateVendedor(
     .update({
       nombre_vendedor: payload.nombre_vendedor,
       email: payload.email,
-      dni: payload.dni,
       telefono: payload.telefono,
     })
     .eq('clerk_user_id', payload.clerk_user_id);

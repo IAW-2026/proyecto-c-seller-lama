@@ -17,7 +17,6 @@ export function VendedoresTable({ vendedores, pagination }: VendedoresTableProps
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Nombre</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Email</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">DNI</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Teléfono</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Fecha Creación</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Acciones</th>
@@ -36,10 +35,6 @@ export function VendedoresTable({ vendedores, pagination }: VendedoresTableProps
 
                   <td className="px-6 py-4 text-sm text-slate-600">
                     {vendedor.email}
-                  </td>
-
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    {vendedor.dni}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-slate-600">
