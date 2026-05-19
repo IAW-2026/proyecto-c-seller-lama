@@ -76,7 +76,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const { error } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('vendedor')
     .upsert(
       {
@@ -84,14 +84,21 @@ export async function POST(req: Request) {
         email,
         nombre_vendedor: nombreVendedor,
         telefono: null,
-        fecha_creacion: fechaCreacion,
       },
       { onConflict: 'clerk_user_id' }
     );
 
+  console.log('SUPABASE DATA:', data);
+  console.log('SUPABASE ERROR:', error);
+
   if (error) {
+    console.error(error);
+
     return NextResponse.json(
-      { error: 'Error al sincronizar vendedor' },
+      {
+        error: error.message,
+        details: error,
+      },
       { status: 500 }
     );
   }
