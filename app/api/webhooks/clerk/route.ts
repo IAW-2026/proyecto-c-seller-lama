@@ -1,6 +1,7 @@
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { clerkClient } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 type ClerkUserCreatedEvent = {
@@ -75,6 +76,21 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+  //asignar rol de vendedor al nuevo usuario en Clerk
+  const client = await clerkClient();
+
+  try {
+    await client.users.updateUserMetadata(clerkUserId, {
+      publicMetadata: {
+        roles: ['vendedor'],
+      },
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'No se pudo asignar el rol vendedor' },
+      { status: 500 }
+    );
+  }
 
   const { data, error } = await supabaseAdmin
     .from('vendedor')
@@ -88,12 +104,7 @@ export async function POST(req: Request) {
       { onConflict: 'clerk_user_id' }
     );
 
-  console.log('SUPABASE DATA:', data);
-  console.log('SUPABASE ERROR:', error);
-
   if (error) {
-    console.error(error);
-
     return NextResponse.json(
       {
         error: error.message,
