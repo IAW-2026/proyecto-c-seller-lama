@@ -40,7 +40,7 @@ export default clerkMiddleware(async (auth, req) => {
   // Si está autenticado en una ruta pública (sign-in, sign-up)
   // Redirigir a ventas después del login
   if (userId && isAuthRoute(req)) {
-    return NextResponse.redirect(new URL('/ventas', req.url));
+    return NextResponse.redirect(new URL('/auth/redirect', req.url));
   }
 });
 

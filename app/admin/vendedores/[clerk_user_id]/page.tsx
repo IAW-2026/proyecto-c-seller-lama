@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
+import { requireSuperAdmin } from '@/lib/auth/roles';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { VendedorEditForm } from '@/components/admin/VendedorEditForm';
@@ -12,11 +11,7 @@ interface Props {
 }
 
 export default async function VendedorEditPage({ params }: Props) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect('/sign-in');
-  }
+  await requireSuperAdmin();
 
   const { clerk_user_id } = await params;
 
