@@ -1,16 +1,11 @@
-import { redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
+import { requireSuperAdmin } from '@/lib/auth/roles';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { AdminDashboardClient } from '@/components/admin/AdminDashboardClient';
 
 export default async function AdminPage() {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect('/sign-in');
-  }
+  await requireSuperAdmin();
 
   const vendedoresQuery = supabase
     .from('vendedor')

@@ -38,7 +38,7 @@ export default function SignUpPage() {
                   colorBackground: "#f6f1e7",
                 },
               }}
-              fallbackRedirectUrl="/ventas"
+              fallbackRedirectUrl="/auth/redirect"
             />
           </div>
         </div>
