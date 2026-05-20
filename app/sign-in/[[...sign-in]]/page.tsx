@@ -39,6 +39,7 @@ export default function SignInPage() {
                 },
               }}
               fallbackRedirectUrl="/auth/redirect"
+              forceRedirectUrl="/auth/redirect"
             />
           </div>
         </div>
