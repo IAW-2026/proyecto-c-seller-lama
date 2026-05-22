@@ -4,4 +4,5 @@ export interface Vendedor {
   email: string;
   telefono: string | null;
   fecha_creacion: string;
+  activo: boolean;
 }

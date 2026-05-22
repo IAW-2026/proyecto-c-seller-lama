@@ -5,6 +5,8 @@ import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { VentasClient } from '@/components/ventas/VentasClient';
 import type { Orden, OrdenConItems, OrdenItem } from '@/types/orden';
+import { VendedorInactivoBanner } from '@/components/ui/VendedorInactivoBanner';
+import { getVendedorActivoById } from '@/lib/vendedor-status';
 
 //Sirve para evitar errores de TypeScript cuando accedés a item.orden o item.producto.
 type OrdenItemWithOrden = {
@@ -23,6 +25,8 @@ export default async function VentasPage() {
   if (!userId) {
     redirect('/sign-in');
   }
+
+  const vendedorActivo = await getVendedorActivoById(userId);
 
   // Join con orden para traer los datos de la orden asociada a cada item.
   // Join con producto para traer el producto vendido y filtrar por vendedor.
@@ -110,7 +114,13 @@ export default async function VentasPage() {
             description="Gestiona tus órdenes, pagos y estado de envíos"
           />
 
-          <VentasClient ordenes={ordenes} />
+          {!vendedorActivo && (
+            <div className="mb-6">
+              <VendedorInactivoBanner />
+            </div>
+          )}
+
+          <VentasClient ordenes={ordenes} vendedorActivo={vendedorActivo} />
         </div>
       </PageContainer>
     </main>

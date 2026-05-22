@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { ProductoCreateForm } from '@/components/productos/ProductoCreateForm';
 import { supabase } from '@/lib/supabase';
+import { getVendedorActivoById } from '@/lib/vendedor-status';
 
 export default async function NuevoProductoPage() {
   const { userId } = await auth();
@@ -9,6 +10,8 @@ export default async function NuevoProductoPage() {
   if (!userId) {
     redirect('/sign-in');
   }
+
+  const vendedorActivo = await getVendedorActivoById(userId);
 
   const { data: categorias, error } = await supabase
     .from('categoria_producto')
@@ -23,6 +26,7 @@ export default async function NuevoProductoPage() {
     <ProductoCreateForm
       clerkUserId={userId}
       categorias={categorias || []}
+      vendedorActivo={vendedorActivo}
     />
   );
 }

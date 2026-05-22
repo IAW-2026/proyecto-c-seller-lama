@@ -12,6 +12,7 @@ import { EmptyVentas } from '@/components/ventas/EmptyVentas';
 
 interface VentasClientProps {
   ordenes: OrdenConItems[];
+  vendedorActivo: boolean;
 }
 
 const normalizeText = (value: string) => value.trim().toLowerCase();
@@ -31,7 +32,7 @@ const parseDateInput = (value: string) => {
 const endOfDay = (date: Date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
 
-export function VentasClient({ ordenes }: VentasClientProps) {
+export function VentasClient({ ordenes, vendedorActivo }: VentasClientProps) {
   const router = useRouter();
   const notification = useNotification();
   const [search, setSearch] = useState('');
@@ -98,6 +99,10 @@ export function VentasClient({ ordenes }: VentasClientProps) {
   }, 0);
 
   const handleDespachar = async (orden: OrdenConItems) => {
+    if (!vendedorActivo) {
+      notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
+      return;
+    }
     if (despachandoId) return;
     setDespachandoId(orden.orden_id);
 
@@ -147,6 +152,7 @@ export function VentasClient({ ordenes }: VentasClientProps) {
           ordenes={filteredOrdenes}
           onDespachar={handleDespachar}
           despachandoId={despachandoId}
+          vendedorActivo={vendedorActivo}
         />
       ) : (
         <EmptyVentas />

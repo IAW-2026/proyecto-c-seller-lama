@@ -5,6 +5,7 @@ interface VentasTableProps {
   ordenes: OrdenConItems[];
   onDespachar: (orden: OrdenConItems) => void;
   despachandoId?: string | null;
+  vendedorActivo: boolean;
 }
 
 const formatProductos = (items: OrdenConItems['items']) => {
@@ -35,6 +36,7 @@ export function VentasTable({
   ordenes,
   onDespachar,
   despachandoId,
+  vendedorActivo,
 }: VentasTableProps) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -104,7 +106,7 @@ export function VentasTable({
                 </td>
 
                 <td className="px-6 py-4 text-sm">
-                  {PuedeDespachar(orden) ? (
+                  {PuedeDespachar(orden) && vendedorActivo ? (
                     <button
                       type="button"
                       onClick={() => onDespachar(orden)}

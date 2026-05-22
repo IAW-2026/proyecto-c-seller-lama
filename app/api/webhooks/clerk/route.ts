@@ -100,6 +100,7 @@ export async function POST(req: Request) {
         email,
         nombre_vendedor: nombreVendedor,
         telefono: null,
+        activo: true,
       },
       { onConflict: 'clerk_user_id' }
     );

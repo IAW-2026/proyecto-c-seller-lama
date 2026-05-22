@@ -5,6 +5,7 @@ interface ImageUploadProps {
   selectedImagesCount: number;
   firstImageName?: string;
   onRemoveAll?: () => void;
+  disabled?: boolean;
 }
 
 export function ImageUpload({
@@ -12,6 +13,7 @@ export function ImageUpload({
   selectedImagesCount,
   firstImageName,
   onRemoveAll,
+  disabled = false,
 }: ImageUploadProps) {
   return (
     <div>
@@ -19,7 +21,11 @@ export function ImageUpload({
         Imágenes del producto
       </label>
 
-      <label className="block cursor-pointer rounded-xl border-2 border-dashed border-[#8fa18d] bg-[#f6f1e7] p-6 text-center hover:bg-[#e8dfcf] transition duration-200">
+      <label
+        className={`block rounded-xl border-2 border-dashed border-[#8fa18d] bg-[#f6f1e7] p-6 text-center transition duration-200 ${
+          disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-[#e8dfcf]'
+        }`}
+      >
         <div className="flex flex-col items-center justify-center gap-2">
           <div className="w-12 h-12 rounded-full bg-[#8fa18d]/10 flex items-center justify-center text-2xl">
             📷
@@ -45,6 +51,7 @@ export function ImageUpload({
           accept="image/*"
           multiple
           onChange={onImagesChange}
+          disabled={disabled}
           className="hidden"
         />
       </label>
@@ -53,7 +60,8 @@ export function ImageUpload({
         <button
           type="button"
           onClick={onRemoveAll}
-          className="mt-2 text-sm text-[#d17d6f] hover:text-[#b85a47] font-medium"
+          disabled={disabled}
+          className="mt-2 text-sm text-[#d17d6f] hover:text-[#b85a47] font-medium disabled:opacity-60 disabled:cursor-not-allowed"
         >
           Limpiar todas las imágenes
         </button>

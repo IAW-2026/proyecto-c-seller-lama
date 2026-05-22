@@ -8,15 +8,18 @@ import { useImageUpload } from '@/hooks/useImageUpload';
 import { useNotification } from '@/hooks/useNotification';
 import {
   uploadProductImages,
-  createProduct,
-  createCategoriaProducto,
 } from '@/lib/supabase-products';
+import {
+  createCategoriaProductoAction,
+  createProductoAction,
+} from '@/actions/productoActions';
 import { validateProductForm } from '@/lib/product-utils';
 import type { ProductFormData } from '@/types/producto';
 import { ImagePreview } from './FormSections/ImagePreview';
 import { ImageUpload } from './FormSections/ImageUpload';
 import { ProductFormFields } from './FormSections/ProductFormFields';
 import { FormActions } from './FormSections/FormActions';
+import { VendedorInactivoBanner } from '@/components/ui/VendedorInactivoBanner';
 
 interface Categoria {
   categoria_producto_id: string;
@@ -26,11 +29,13 @@ interface Categoria {
 interface ProductoCreateFormProps {
   clerkUserId: string;
   categorias: Categoria[];
+  vendedorActivo: boolean;
 }
 
 export function ProductoCreateForm({
   clerkUserId,
   categorias,
+  vendedorActivo,
 }: ProductoCreateFormProps) {
   const router = useRouter();
   const notification = useNotification();
@@ -51,6 +56,10 @@ export function ProductoCreateForm({
   const [isCreatingCategoria, setIsCreatingCategoria] = useState(false);
 
   const openCategoriaModal = () => {
+    if (!vendedorActivo) {
+      notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
+      return;
+    }
     setCategoriaNombre('');
     setIsCategoriaModalOpen(true);
   };
@@ -60,6 +69,10 @@ export function ProductoCreateForm({
   };
 
   const handleCreateCategoria = async () => {
+    if (!vendedorActivo) {
+      notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
+      return;
+    }
     const nombre = categoriaNombre.trim();
 
     if (!nombre) {
@@ -70,13 +83,19 @@ export function ProductoCreateForm({
     setIsCreatingCategoria(true);
 
     try {
-      const nuevaCategoria = await createCategoriaProducto(nombre);
-      setLocalCategorias((prev) => [...prev, nuevaCategoria]);
+      const result = await createCategoriaProductoAction(nombre);
+
+      if (!result.success || !result.data) {
+        notification.showError(result.message);
+        return;
+      }
+
+      setLocalCategorias((prev) => [...prev, result.data]);
       setFormData((prev) => ({
         ...prev,
-        categoria_id: nuevaCategoria.categoria_producto_id,
+        categoria_id: result.data.categoria_producto_id,
       }));
-      notification.showSuccess('Categoria creada exitosamente.', 3000);
+      notification.showSuccess(result.message, 3000);
       closeCategoriaModal();
     } catch (error) {
       const errorMessage =
@@ -90,6 +109,10 @@ export function ProductoCreateForm({
   };
 
   const handleCreate = async () => {
+    if (!vendedorActivo) {
+      notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
+      return;
+    }
     // Validar formulario
     const validation = validateProductForm({
       titulo: formData.titulo,
@@ -114,9 +137,18 @@ export function ProductoCreateForm({
       }
 
       // Crear producto
-      await createProduct(clerkUserId, formData as ProductFormData, imageUrls);
+      const result = await createProductoAction(
+        formData as ProductFormData,
+        imageUrls
+      );
 
-      notification.showSuccess('Producto creado exitosamente.', 3000);
+      if (!result.success) {
+        notification.showError(result.message);
+        setIsSaving(false);
+        return;
+      }
+
+      notification.showSuccess(result.message, 3000);
       router.push('/productos');
       router.refresh();
     } catch (error) {
@@ -136,6 +168,12 @@ export function ProductoCreateForm({
         >
           ← Volver a productos
         </Link>
+
+        {!vendedorActivo && (
+          <div className="mb-6">
+            <VendedorInactivoBanner />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Imagen preview */}
@@ -159,7 +197,8 @@ export function ProductoCreateForm({
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute top-1 right-1 bg-[#d17d6f] text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-sm font-bold"
+                        disabled={!vendedorActivo}
+                        className="absolute top-1 right-1 bg-[#d17d6f] text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         ✕
                       </button>
@@ -183,6 +222,7 @@ export function ProductoCreateForm({
                 selectedImagesCount={selectedImages.length}
                 firstImageName={selectedImages[0]?.name}
                 onRemoveAll={removeAllImages}
+                disabled={!vendedorActivo}
               />
 
               {/* Campos del formulario */}
@@ -193,10 +233,15 @@ export function ProductoCreateForm({
                 onPriceChange={handlePriceChange}
                 errors={errors}
                 onCreateCategory={openCategoriaModal}
+                disabled={!vendedorActivo}
               />
 
               {/* Botones de acción */}
-              <FormActions isSaving={isSaving} onSubmit={handleCreate} />
+              <FormActions
+                isSaving={isSaving}
+                onSubmit={handleCreate}
+                isBlocked={!vendedorActivo}
+              />
             </div>
           </div>
         </div>
@@ -217,6 +262,7 @@ export function ProductoCreateForm({
               value={categoriaNombre}
               onChange={(event) => setCategoriaNombre(event.target.value)}
               placeholder="Ej: Accesorios"
+              disabled={!vendedorActivo}
               className="w-full rounded-lg border border-[#d8cfbd] bg-white px-4 py-2 text-sm text-[#37413d] outline-none focus:border-[#8fa18d]"
             />
 
@@ -231,7 +277,7 @@ export function ProductoCreateForm({
               <button
                 type="button"
                 onClick={handleCreateCategoria}
-                disabled={isCreatingCategoria}
+                disabled={isCreatingCategoria || !vendedorActivo}
                 className="rounded-lg border border-[#8fa18d] bg-[#8fa18d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#7e937c] disabled:opacity-60"
               >
                 {isCreatingCategoria ? 'Creando...' : 'Crear'}

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useTransition } from 'react';
 import { useNotification } from '@/hooks/useNotification';
 import {
+  activateVendedor,
   deleteOrden,
   deleteProducto,
   deleteVendedor,
@@ -15,20 +16,31 @@ interface AdminTableActionsProps {
   editHref: string;
   deleteType: DeleteType;
   deleteId: string;
+  vendedorActivo?: boolean;
 }
 
 export function AdminTableActions({
   editHref,
   deleteType,
   deleteId,
+  vendedorActivo = true,
 }: AdminTableActionsProps) {
   const [isPending, startTransition] = useTransition();
   const notification = useNotification();
+  const isVendedor = deleteType === 'vendedor';
+  const isActivateAction = isVendedor && !vendedorActivo;
 
   const getDeleteLabel = () => {
     if (deleteType === 'producto') return 'este producto';
     if (deleteType === 'orden') return 'esta orden';
     return 'este vendedor';
+  };
+
+  const getActionLabel = () => {
+    if (deleteType === 'vendedor') {
+      return vendedorActivo ? 'desactivar' : 'activar';
+    }
+    return 'eliminar';
   };
 
   const executeDelete = () => {
@@ -44,7 +56,11 @@ export function AdminTableActions({
       }
 
       if (deleteType === 'vendedor') {
-        result = await deleteVendedor(deleteId);
+        if (vendedorActivo) {
+          result = await deleteVendedor(deleteId);
+        } else {
+          result = await activateVendedor(deleteId);
+        }
       }
 
       if (!result) {
@@ -63,10 +79,10 @@ export function AdminTableActions({
 
   const handleDelete = () => {
     notification.showWithAction(
-      `¿Estás seguro de que querés eliminar ${getDeleteLabel()}?`,
+      `¿Estás seguro de que querés ${getActionLabel()} ${getDeleteLabel()}?`,
       'warning',
       {
-        label: 'Sí, eliminar',
+        label: `Sí, ${getActionLabel()}`,
         onClick: executeDelete,
       },
       0
@@ -86,9 +102,13 @@ export function AdminTableActions({
         type="button"
         onClick={handleDelete}
         disabled={isPending}
-        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50"
+        className={
+          isActivateAction
+            ? 'px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-50'
+            : 'px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50'
+        }
       >
-        {isPending ? 'Eliminando...' : 'Eliminar'}
+        {isPending ? 'Procesando...' : getActionLabel()}
       </button>
     </div>
   );

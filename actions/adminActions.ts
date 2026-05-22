@@ -96,28 +96,28 @@ export async function deleteOrden(ordenId: string): Promise<ActionResult> {
 }
 
 export async function deleteVendedor(clerkUserId: string): Promise<ActionResult> {
-  const { data: productosAsociados } = await supabase
+  const { error: productosError } = await supabase
     .from('producto')
-    .select('titulo')
+    .update({ estado_publicacion: 'inactiva' })
     .eq('clerk_user_id', clerkUserId)
-    .limit(1);
+    .neq('estado_publicacion', 'vendida');
 
-  if (productosAsociados && productosAsociados.length > 0) {
+  if (productosError) {
     return {
       success: false,
-      message: `No se puede eliminar este vendedor porque tiene productos asociados. Primero elimina o reasigna el producto "${productosAsociados[0].titulo}".`,
+      message: 'No se pudieron desactivar los productos del vendedor. Intenta nuevamente.',
     };
   }
 
   const { error } = await supabase
     .from('vendedor')
-    .delete()
+    .update({ activo: false })
     .eq('clerk_user_id', clerkUserId);
 
   if (error) {
     return {
       success: false,
-      message: 'No se pudo eliminar el vendedor. Intenta nuevamente.',
+      message: 'No se pudo desactivar el vendedor. Intenta nuevamente.',
     };
   }
 
@@ -125,7 +125,28 @@ export async function deleteVendedor(clerkUserId: string): Promise<ActionResult>
 
   return {
     success: true,
-    message: 'Vendedor eliminado exitosamente.',
+    message: 'Vendedor desactivado exitosamente.',
+  };
+}
+
+export async function activateVendedor(clerkUserId: string): Promise<ActionResult> {
+  const { error } = await supabase
+    .from('vendedor')
+    .update({ activo: true })
+    .eq('clerk_user_id', clerkUserId);
+
+  if (error) {
+    return {
+      success: false,
+      message: 'No se pudo activar el vendedor. Intenta nuevamente.',
+    };
+  }
+
+  revalidatePath('/admin');
+
+  return {
+    success: true,
+    message: 'Vendedor activado exitosamente.',
   };
 }
 

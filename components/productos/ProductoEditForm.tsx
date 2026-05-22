@@ -6,15 +6,18 @@ import { useRouter } from 'next/navigation';
 import { useProductoForm } from '@/hooks/useProductoForm';
 import { useNotification } from '@/hooks/useNotification';
 import {
-  updateProduct,
   uploadProductImages,
-  deleteProduct,
 } from '@/lib/supabase-products';
+import {
+  deleteProductoAction,
+  updateProductoAction,
+} from '@/actions/productoActions';
 import { validateProductForm } from '@/lib/product-utils';
 import type { Producto, ProductFormData } from '@/types/producto';
 import { ProductImageManager } from './FormSections/ProductImageManager';
 import { ProductFormFields } from './FormSections/ProductFormFields';
 import { FormActions } from './FormSections/FormActions';
+import { VendedorInactivoBanner } from '@/components/ui/VendedorInactivoBanner';
 
 interface Categoria {
   categoria_producto_id: string;
@@ -25,12 +28,14 @@ interface ProductoEditFormProps {
   producto: Producto;
   categorias?: Categoria[];
   returnPath?: string;
+  vendedorActivo: boolean;
 }
 
 export function ProductoEditForm({
   producto,
   categorias = [],
   returnPath = '/productos',
+  vendedorActivo,
 }: ProductoEditFormProps) {
   const router = useRouter();
   const notification = useNotification();
@@ -90,6 +95,10 @@ export function ProductoEditForm({
   };
 
   const handleDelete = () => {
+    if (!vendedorActivo) {
+      notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
+      return;
+    }
     notification.showWithAction(
       '¿Estás seguro de que querés eliminar este producto?',
       'warning',
@@ -99,13 +108,16 @@ export function ProductoEditForm({
           setIsSaving(true);
 
           try {
-            await deleteProduct(
-              producto.producto_id,
-              producto.imagenes || []
-            );
+            const result = await deleteProductoAction(producto.producto_id);
+
+            if (!result.success) {
+              notification.showError(result.message);
+              setIsSaving(false);
+              return;
+            }
 
             notification.showSuccess(
-              'Producto eliminado exitosamente.',
+              result.message,
               3000
             );
 
@@ -127,6 +139,10 @@ export function ProductoEditForm({
   };
 
   const handleSave = async () => {
+    if (!vendedorActivo) {
+      notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
+      return;
+    }
     const validation = validateProductForm({
       titulo: formData.titulo,
       precio: formData.precio,
@@ -156,9 +172,19 @@ export function ProductoEditForm({
         ...uploadedImageUrls,
       ];
 
-      await updateProduct(producto.producto_id, formData, finalImageUrls);
+      const result = await updateProductoAction(
+        producto.producto_id,
+        formData,
+        finalImageUrls
+      );
 
-      notification.showSuccess('Producto actualizado exitosamente.', 3000);
+      if (!result.success) {
+        notification.showError(result.message);
+        setIsSaving(false);
+        return;
+      }
+
+      notification.showSuccess(result.message, 3000);
 
       router.push(returnPath);
       router.refresh();
@@ -183,6 +209,12 @@ export function ProductoEditForm({
           ← Volver
         </Link>
 
+        {!vendedorActivo && (
+          <div className="mb-6">
+            <VendedorInactivoBanner />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <ProductImageManager
             existingImages={existingImages}
@@ -190,6 +222,7 @@ export function ProductoEditForm({
             onAddImages={handleAddImages}
             onRemoveExistingImage={handleRemoveExistingImage}
             onRemoveNewImage={handleRemoveNewImage}
+            disabled={!vendedorActivo}
           />
 
           <div className="bg-[#ede6d8] rounded-xl border border-[#d8cfbd] p-8 shadow-sm">
@@ -208,6 +241,7 @@ export function ProductoEditForm({
                 onInputChange={handleChange}
                 onPriceChange={handlePriceChange}
                 errors={errors}
+                disabled={!vendedorActivo}
               />
 
               <FormActions
@@ -216,6 +250,7 @@ export function ProductoEditForm({
                 onDelete={handleDelete}
                 showDelete
                 submitLabel="Guardar cambios"
+                isBlocked={!vendedorActivo}
               />
             </div>
           </div>

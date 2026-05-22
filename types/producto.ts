@@ -21,6 +21,7 @@ export interface Producto {
   estado_prenda: 'nuevo' | 'usado' | 'vintage';
   talle: string | null;
   marca: string | null;
+  genero: 'hombre ' | 'mujer' | 'niños';
   estado_publicacion: 'activa' | 'inactiva' | 'vendida';
   fecha_creacion: string; // ISO timestamp
 }

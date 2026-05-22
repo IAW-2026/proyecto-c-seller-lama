@@ -1,4 +1,5 @@
 import type { Vendedor } from '@/types';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { AdminTableContainer } from './AdminTableContainer';
 import { AdminTableActions } from './AdminTableActions';
 
@@ -19,6 +20,7 @@ export function VendedoresTable({ vendedores, pagination }: VendedoresTableProps
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Email</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Teléfono</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Fecha Creación</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Estado</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Acciones</th>
               </tr>
             </thead>
@@ -46,10 +48,15 @@ export function VendedoresTable({ vendedores, pagination }: VendedoresTableProps
                   </td>
 
                   <td className="px-6 py-4 text-sm">
+                    <StatusBadge status={vendedor.activo ? 'activa' : 'inactiva'} />
+                  </td>
+
+                  <td className="px-6 py-4 text-sm">
                     <AdminTableActions
                       editHref={`/admin/vendedores/${vendedor.clerk_user_id}`}
                       deleteType="vendedor"
                       deleteId={vendedor.clerk_user_id}
+                      vendedorActivo={vendedor.activo}
                     />
                   </td>
                 </tr>

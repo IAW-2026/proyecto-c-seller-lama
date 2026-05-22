@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase';
 import type { Producto } from '@/types';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { VendedorInactivoBanner } from '@/components/ui/VendedorInactivoBanner';
+import { getVendedorActivoById } from '@/lib/vendedor-status';
 import {
   ESTADOS_PUBLICACION,
   type EstadoFiltroProducto,
@@ -30,6 +32,8 @@ export default async function ProductosPage({
 
   const params = await searchParams;
   const estadoParam = params?.estado;
+
+  const vendedorActivo = await getVendedorActivoById(userId);
 
   const estado: EstadoFiltroProducto =
     estadoParam === 'todos' ||
@@ -59,7 +63,7 @@ export default async function ProductosPage({
     console.error('Error al traer productos:', error);
 
     return (
-      <main className="min-h-screen bg-amber-50">
+      <main className="min-h-screen bg-[#f6f1e7]">
         <PageContainer>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mt-8">
             Error al cargar productos: {JSON.stringify(error)}
@@ -75,7 +79,7 @@ export default async function ProductosPage({
   }));
 
   return (
-    <main className="min-h-screen bg-amber-50">
+    <main className="min-h-screen bg-[#f6f1e7]">
       <PageContainer>
         <div className="py-12">
           <PageHeader
@@ -84,12 +88,23 @@ export default async function ProductosPage({
             action={
               <Link
                 href="/productos/nuevo"
-                className="bg-[#8fa18d] hover:bg-[#7a8c78] text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm"
+                className={`bg-[#8fa18d] text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm ${
+                  vendedorActivo
+                    ? 'hover:bg-[#7a8c78]'
+                    : 'opacity-60 cursor-not-allowed pointer-events-none'
+                }`}
+                aria-disabled={!vendedorActivo}
               >
                 + Nuevo producto
               </Link>
             }
           />
+
+          {!vendedorActivo && (
+            <div className="mb-6">
+              <VendedorInactivoBanner />
+            </div>
+          )}
 
           <ProductStatusFilter selectedStatus={estado} />
 

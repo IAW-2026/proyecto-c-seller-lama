@@ -4,6 +4,7 @@ interface ProductImageManagerProps {
   onAddImages: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveExistingImage: (imageUrl: string) => void;
   onRemoveNewImage: (index: number) => void;
+  disabled?: boolean;
 }
 
 export function ProductImageManager({
@@ -12,6 +13,7 @@ export function ProductImageManager({
   onAddImages,
   onRemoveExistingImage,
   onRemoveNewImage,
+  disabled = false,
 }: ProductImageManagerProps) {
   const hasImages = existingImages.length > 0 || newImagePreviews.length > 0;
 
@@ -37,7 +39,8 @@ export function ProductImageManager({
               <button
                 type="button"
                 onClick={() => onRemoveExistingImage(imageUrl)}
-                className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-md hover:bg-red-700 transition"
+                disabled={disabled}
+                className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-md hover:bg-red-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Eliminar
               </button>
@@ -58,7 +61,8 @@ export function ProductImageManager({
               <button
                 type="button"
                 onClick={() => onRemoveNewImage(index)}
-                className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-md hover:bg-red-700 transition"
+                disabled={disabled}
+                className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-md hover:bg-red-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Eliminar
               </button>
@@ -76,7 +80,11 @@ export function ProductImageManager({
       )}
 
       <label className="block">
-        <span className="inline-block bg-[#8fa18d] text-white px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-[#6f7f6d] transition">
+        <span
+          className={`inline-block bg-[#8fa18d] text-white px-4 py-2 rounded-lg text-sm font-medium transition ${
+            disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-[#6f7f6d]'
+          }`}
+        >
           Agregar imágenes
         </span>
 
@@ -85,6 +93,7 @@ export function ProductImageManager({
           accept="image/*"
           multiple
           onChange={onAddImages}
+          disabled={disabled}
           className="hidden"
         />
       </label>

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import type { Producto } from '@/types';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { getVendedorActivoById } from '@/lib/vendedor-status';
 
 interface Props {
   params: Promise<{ producto_id: string }>;
@@ -25,6 +26,8 @@ export default async function ProductoDetallePage({ params, searchParams }: Prop
   if (!userId) {
     redirect('/sign-in');
   }
+
+  const vendedorActivo = await getVendedorActivoById(userId);
   
   const { producto_id } = await params;
   const query = searchParams ? await searchParams : undefined;
@@ -81,6 +84,7 @@ export default async function ProductoDetallePage({ params, searchParams }: Prop
       producto={productoConCategoria as ProductoConCategoria}
       categorias={(categorias as Categoria[]) || []}
       returnPath={returnPath}
+      vendedorActivo={vendedorActivo}
     />
   );
 }

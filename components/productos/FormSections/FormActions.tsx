@@ -9,6 +9,7 @@ interface FormActionsProps {
   cancelHref?: string;
   onDelete?: () => void;
   showDelete?: boolean;
+  isBlocked?: boolean;
 }
 
 export function FormActions({
@@ -18,14 +19,17 @@ export function FormActions({
   cancelHref = '/productos',
   onDelete,
   showDelete = false,
+  isBlocked = false,
 }: FormActionsProps) {
+  const isDisabled = isSaving || isBlocked;
+
   return (
     <div className="space-y-3 pt-4">
       <div className="flex gap-4">
         <button
           type="button"
           onClick={onSubmit}
-          disabled={isSaving}
+          disabled={isDisabled}
           className="flex-1 bg-[#8fa18d] hover:bg-[#7a8c78] disabled:bg-[#8fa18d] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm"
         >
           {isSaving ? 'Guardando...' : submitLabel}
@@ -43,7 +47,7 @@ export function FormActions({
         <button
           type="button"
           onClick={onDelete}
-          disabled={isSaving}
+          disabled={isDisabled}
           className="w-full bg-red-50 hover:bg-red-100 disabled:opacity-60 disabled:cursor-not-allowed text-red-700 font-semibold py-3 px-4 rounded-lg border border-red-300 transition duration-200"
         >
           Eliminar producto

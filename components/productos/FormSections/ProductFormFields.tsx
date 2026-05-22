@@ -18,6 +18,7 @@ interface ProductFormFieldsProps {
   onPriceChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   errors?: Record<string, string>;
   onCreateCategory?: () => void;
+  disabled?: boolean;
 }
 
 const CREATE_CATEGORY_VALUE = '__crear_categoria__';
@@ -52,6 +53,7 @@ export function ProductFormFields({
   onPriceChange,
   errors = {},
   onCreateCategory,
+  disabled = false,
 }: ProductFormFieldsProps) {
   const handleCategoriaChange = (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -73,6 +75,7 @@ export function ProductFormFields({
           value={formData.titulo}
           onChange={onInputChange}
           placeholder="Ej: Remera Nike azul talle M"
+          disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
         />
       </FormField>
@@ -85,6 +88,7 @@ export function ProductFormFields({
           onChange={onInputChange}
           rows={3}
           placeholder="Ej: Remera en buen estado, sin manchas..."
+          disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition resize-none"
         />
       </FormField>
@@ -95,6 +99,7 @@ export function ProductFormFields({
           name="categoria_id"
           value={formData.categoria_id}
           onChange={handleCategoriaChange}
+          disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
         >
           <option value="">Seleccionar categoría</option>
@@ -128,6 +133,7 @@ export function ProductFormFields({
             value={formData.precio}
             onChange={onPriceChange}
             placeholder="10.000"
+            disabled={disabled}
             className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6f7f6d] text-sm pointer-events-none">
@@ -144,6 +150,7 @@ export function ProductFormFields({
             value={formData.marca || ''}
             onChange={onInputChange}
             placeholder="Ej: Nike"
+            disabled={disabled}
             className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
           />
         </FormField>
@@ -154,6 +161,7 @@ export function ProductFormFields({
             value={formData.talle || ''}
             onChange={onInputChange}
             placeholder="Ej: M, 10, XL"
+            disabled={disabled}
             className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
           />
         </FormField>
@@ -165,6 +173,7 @@ export function ProductFormFields({
           name="estado_prenda"
           value={formData.estado_prenda}
           onChange={onInputChange}
+          disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
         >
           <option value="nuevo">Nuevo</option>
@@ -179,6 +188,7 @@ export function ProductFormFields({
           name="estado_publicacion"
           value={formData.estado_publicacion}
           onChange={onInputChange}
+          disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
         >
           <option value="activa">Activa</option>

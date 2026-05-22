@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
 import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
+import { getVendedorActivoOrError } from '@/lib/vendedor-status';
 
 type ShippingResponse = {
   envio_id: string;
@@ -19,6 +20,12 @@ export async function POST(
 
   if (!userId) {
     return jsonError('No autenticado', 401);
+  }
+
+  const status = await getVendedorActivoOrError(userId);
+
+  if (!status.activo) {
+    return jsonError(status.message || 'Vendedor inactivo', 403);
   }
 
   const params = await props.params;
