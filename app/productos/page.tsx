@@ -2,23 +2,25 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import { ProductoCard } from '@/components/productos/ProductoCard';
-import { ProductStatusFilter } from '@/components/productos/ProductStatusFilter';
-import { supabase } from '@/lib/supabase';
-import type { Producto } from '@/types';
+import { ProductFilters } from '@/components/productos/ProductFilters';
+import { Pagination } from '@/components/ui/Pagination';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { VendedorInactivoBanner } from '@/components/ui/VendedorInactivoBanner';
 import { getVendedorActivoById } from '@/lib/vendedor-status';
 import {
-  ESTADOS_PUBLICACION,
-  type EstadoFiltroProducto,
-  type EstadoPublicacion,
-} from '@/types/producto';
+  buildProductosQueryString,
+  getCategoriaOptionsWithAll,
+  getCategorias,
+  getCategoriasOptions,
+  getEstadoOptions,
+  getGeneroOptions,
+  getProductosConFiltros,
+} from '@/lib/productos/productos-query';
+import type { ProductoSearchParams } from '@/types/producto-filters';
 
 interface ProductosPageProps {
-  searchParams?: Promise<{
-    estado?: string;
-  }>;
+  searchParams?: Promise<ProductoSearchParams>;
 }
 
 export default async function ProductosPage({
@@ -31,52 +33,24 @@ export default async function ProductosPage({
   }
 
   const params = await searchParams;
-  const estadoParam = params?.estado;
-
   const vendedorActivo = await getVendedorActivoById(userId);
 
-  const estado: EstadoFiltroProducto =
-    estadoParam === 'todos' ||
-    ESTADOS_PUBLICACION.includes(estadoParam as EstadoPublicacion)
-      ? (estadoParam as EstadoFiltroProducto)
-      : 'activa';
+  const categorias = await getCategorias();
+  const categoriaOptions = getCategoriaOptionsWithAll(
+    getCategoriasOptions(categorias)
+  );
+  const estadoOptions = getEstadoOptions();
+  const generoOptions = getGeneroOptions();
 
-  let query = supabase
-    .from('producto')
-    .select(
-      `
-      *,
-      categoria_producto (
-        nombre
-      )
-      `
-    )
-    .eq('clerk_user_id', userId);
+  const { productos, totalPages, currentPage, filters } =
+    await getProductosConFiltros({
+      userId,
+      searchParams: params,
+      categorias,
+    });
 
-  if (estado !== 'todos') {
-    query = query.eq('estado_publicacion', estado);
-  }
-
-  const { data: productosConCategoria, error } = await query;
-
-  if (error) {
-    console.error('Error al traer productos:', error);
-
-    return (
-      <main className="min-h-screen bg-[#f6f1e7]">
-        <PageContainer>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mt-8">
-            Error al cargar productos: {JSON.stringify(error)}
-          </div>
-        </PageContainer>
-      </main>
-    );
-  }
-
-  const productos = (productosConCategoria || []).map((prod: any) => ({
-    ...prod,
-    categoria_nombre: prod.categoria_producto?.nombre || 'Sin categoría',
-  }));
+  const buildPageHref = (page: number) =>
+    buildProductosQueryString(filters, { page });
 
   return (
     <main className="min-h-screen bg-[#f6f1e7]">
@@ -106,24 +80,37 @@ export default async function ProductosPage({
             </div>
           )}
 
-          <ProductStatusFilter selectedStatus={estado} />
+          <ProductFilters
+            search={filters.search}
+            estado={filters.estado}
+            genero={filters.genero}
+            talle={filters.talle}
+            categoria={filters.categoria}
+            estadoOptions={estadoOptions}
+            generoOptions={generoOptions}
+            categoriaOptions={categoriaOptions}
+          />
 
           {productos.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {productos.map(
-                (producto: Producto & { categoria_nombre: string }) => (
-                  <ProductoCard
-                    key={producto.producto_id}
-                    producto={producto}
-                  />
-                )
-              )}
+              {productos.map((producto) => (
+                <ProductoCard
+                  key={producto.producto_id}
+                  producto={producto}
+                />
+              ))}
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-300 rounded-lg p-8 text-center text-slate-600">
               No hay productos disponibles 
             </div>
           )}
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            buildHref={buildPageHref}
+          />
         </div>
       </PageContainer>
     </main>

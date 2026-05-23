@@ -9,6 +9,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-up',
   '/sign-up/(.*)',
   '/api/webhooks/clerk',
+  '/auth/redirect',
 ]);
 
 const isAuthRoute = createRouteMatcher([

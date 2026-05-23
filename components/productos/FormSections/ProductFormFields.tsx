@@ -182,6 +182,21 @@ export function ProductFormFields({
         </select>
       </FormField>
 
+      {/* Género */}
+      <FormField label="Género" required>
+        <select
+          name="genero"
+          value={formData.genero}
+          onChange={onInputChange}
+          disabled={disabled}
+          className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
+        >
+          <option value="hombre">Hombre</option>
+          <option value="mujer">Mujer</option>
+          <option value="niños">Niños</option>
+        </select>
+      </FormField>
+
       {/* Estado publicación */}
       <FormField label="Estado de publicación">
         <select

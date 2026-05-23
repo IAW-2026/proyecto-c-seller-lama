@@ -18,7 +18,6 @@ export async function getUserRolesById(userId: string): Promise<UserRole[]> {
 
   const user = await client.users.getUser(userId);
 
-  console.log('PUBLIC METADATA:', user.publicMetadata);
 
   return normalizeRoles(user.publicMetadata?.roles);
 }

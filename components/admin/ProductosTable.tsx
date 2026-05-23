@@ -12,11 +12,13 @@ type ProductoConVendedor = Producto & {
 interface ProductosTableProps {
   productos: ProductoConVendedor[] | null;
   pagination?: React.ReactNode;
+  filtersBar?: React.ReactNode;
 }
 
-export function ProductosTable({ productos, pagination }: ProductosTableProps) {
+export function ProductosTable({ productos, pagination, filtersBar }: ProductosTableProps) {
   return (
-    <AdminTableContainer title="Productos" footer={pagination}>
+    <AdminTableContainer id="productos" title="Productos" footer={pagination}>
+      {filtersBar}
       {productos && productos.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -28,6 +30,7 @@ export function ProductosTable({ productos, pagination }: ProductosTableProps) {
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Estado Prenda</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Publicación</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Talle</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Género</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Creación</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Acciones</th>
               </tr>
@@ -61,6 +64,10 @@ export function ProductosTable({ productos, pagination }: ProductosTableProps) {
 
                   <td className="px-6 py-4 text-sm text-slate-600">
                     {producto.talle || '-'}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-slate-600 capitalize">
+                    {producto.genero}
                   </td>
 
                   <td className="px-6 py-4 text-sm text-slate-600">

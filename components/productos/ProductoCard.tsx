@@ -70,6 +70,10 @@ export function ProductoCard({ producto }: ProductoCardProps) {
             <p className="text-sm text-slate-600 capitalize">
               Estado: <span className="font-medium">{producto.estado_prenda}</span>
             </p>
+
+            <p className="text-sm text-slate-600 capitalize">
+              Género: <span className="font-medium">{producto.genero}</span>
+            </p>
           </div>
 
           {/* Precio */}

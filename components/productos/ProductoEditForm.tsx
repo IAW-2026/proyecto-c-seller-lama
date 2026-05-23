@@ -57,6 +57,7 @@ export function ProductoEditForm({
     talle: producto.talle ?? '',
     marca: producto.marca ?? '',
     estado_publicacion: producto.estado_publicacion,
+    genero: producto.genero,
   };
 
   const {

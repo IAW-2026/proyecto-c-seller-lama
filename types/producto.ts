@@ -6,9 +6,9 @@ export const ESTADOS_PUBLICACION = [
 
 export type EstadoPublicacion = (typeof ESTADOS_PUBLICACION)[number];
 
-export type EstadoFiltroProducto = EstadoPublicacion | 'todos';
-
 export type EstadoPrenda = 'nuevo' | 'usado' | 'vintage';
+
+export type GeneroProducto = 'hombre' | 'mujer' | 'niños';
 
 export interface Producto {
   producto_id: string; 
@@ -21,7 +21,7 @@ export interface Producto {
   estado_prenda: 'nuevo' | 'usado' | 'vintage';
   talle: string | null;
   marca: string | null;
-  genero: 'hombre ' | 'mujer' | 'niños';
+  genero: GeneroProducto;
   estado_publicacion: 'activa' | 'inactiva' | 'vendida';
   fecha_creacion: string; // ISO timestamp
 }
@@ -35,4 +35,5 @@ export interface ProductFormData {
   talle: string;
   marca: string;
   estado_publicacion: 'activa' | 'inactiva' | 'vendida';
+  genero: GeneroProducto;
 }

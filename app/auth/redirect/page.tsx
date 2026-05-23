@@ -1,23 +1,57 @@
-import { redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
-import { getUserRolesById, isSuperAdmin } from '@/lib/auth/roles';
+'use client';
 
-export default async function AuthRedirectPage() {
-  const { userId } = await auth();
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
-  if (!userId) {
-    redirect('/sign-in');
-  }
+export default function AuthRedirectPage() {
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
 
-  const roles = await getUserRolesById(userId);
+  useEffect(() => {
+    // Esperar que Clerk haya cargado completamente la sesión en el cliente
+    if (!isLoaded) return;
 
-  if (isSuperAdmin(roles)) {
-    redirect('/admin');
-  }
+    if (!user) {
+      router.replace('/sign-in');
+      return;
+    }
 
-  if (roles.includes('vendedor')) {
-    redirect('/ventas');
-  }
+    const roles = (user.publicMetadata?.roles as string[]) || [];
 
-  redirect('/sign-in');
+    if (roles.includes('super_admin')) {
+      router.replace('/admin');
+    } else if (roles.includes('vendedor')) {
+      router.replace('/ventas');
+    } else {
+      router.replace('/sign-in');
+    }
+  }, [isLoaded, user, router]);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#f6f1e7]">
+      <div
+        className="
+        flex flex-col items-center gap-4
+        rounded-2xl border border-[#d8cfbd]
+        bg-[#ede6d8] px-8 py-7
+        shadow-sm
+    "
+      >
+        <div
+          className="
+          h-10 w-10 animate-spin rounded-full
+          border-4 border-[#c7bda9]
+          border-t-[#8fa18d]
+        "
+        />
+
+        <div className="flex flex-col items-center gap-1 text-center">
+          <p className="text-sm font-semibold text-[#37413d]">
+            Redirigiendo...
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }

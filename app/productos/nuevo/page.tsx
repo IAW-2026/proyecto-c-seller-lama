@@ -19,7 +19,7 @@ export default async function NuevoProductoPage() {
     .order('nombre', { ascending: true });
 
   if (error) {
-    console.error('Error al traer categorías:', error);
+    // Mantener fallback silencioso; la UI usa categorias vacias.
   }
 
   return (

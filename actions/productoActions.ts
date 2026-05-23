@@ -5,7 +5,12 @@ import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { getVendedorActivoOrError } from '@/lib/vendedor-status';
 import { parsePrice } from '@/lib/product-utils';
-import type { ProductFormData } from '@/types/producto';
+import type { ProductFormData, GeneroProducto } from '@/types/producto';
+
+const GENEROS_VALIDOS: GeneroProducto[] = ['hombre', 'mujer', 'niños'];
+
+const isGeneroValido = (genero: unknown): genero is GeneroProducto =>
+  GENEROS_VALIDOS.includes(genero as GeneroProducto);
 
 type ActionResult<T = undefined> = {
   success: boolean;
@@ -60,6 +65,10 @@ export async function createProductoAction(
     return { success: false, message: 'No autenticado.' };
   }
 
+  if (!isGeneroValido(formData.genero)) {
+    return { success: false, message: 'El género seleccionado no es válido.' };
+  }
+
   const precioNumerico = parsePrice(formData.precio);
 
   const { error } = await supabaseAdmin.from('producto').insert({
@@ -73,6 +82,7 @@ export async function createProductoAction(
     talle: formData.talle || null,
     marca: formData.marca || null,
     estado_publicacion: formData.estado_publicacion,
+    genero: formData.genero,
   });
 
   if (error) {
@@ -96,6 +106,10 @@ export async function updateProductoAction(
 
   if (!userId) {
     return { success: false, message: 'No autenticado.' };
+  }
+
+  if (!isGeneroValido(formData.genero)) {
+    return { success: false, message: 'El género seleccionado no es válido.' };
   }
 
   const { data: producto } = await supabaseAdmin
@@ -122,6 +136,7 @@ export async function updateProductoAction(
       talle: formData.talle || null,
       marca: formData.marca || null,
       estado_publicacion: formData.estado_publicacion,
+      genero: formData.genero,
     })
     .eq('producto_id', productoId);
 

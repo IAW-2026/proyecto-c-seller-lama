@@ -6,11 +6,13 @@ import { AdminTableActions } from './AdminTableActions';
 interface OrdenesTableProps {
   ordenes: Orden[] | null;
   pagination?: React.ReactNode;
+  filtersBar?: React.ReactNode;
 }
 
-export function OrdenesTable({ ordenes, pagination }: OrdenesTableProps) {
+export function OrdenesTable({ ordenes, pagination, filtersBar }: OrdenesTableProps) {
   return (
-    <AdminTableContainer title="Órdenes" footer={pagination}>
+    <AdminTableContainer id="ordenes" title="Órdenes" footer={pagination}>
+      {filtersBar}
       {ordenes && ordenes.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">

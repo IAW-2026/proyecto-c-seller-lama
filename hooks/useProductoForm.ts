@@ -31,6 +31,7 @@ const DEFAULT_FORM_DATA: ProductFormData = {
   talle: '',
   marca: '',
   estado_publicacion: 'activa',
+  genero: 'hombre',
 };
 
 export const useProductoForm = (

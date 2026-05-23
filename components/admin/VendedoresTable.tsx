@@ -6,11 +6,13 @@ import { AdminTableActions } from './AdminTableActions';
 interface VendedoresTableProps {
   vendedores: Vendedor[] | null;
   pagination?: React.ReactNode;
+  filtersBar?: React.ReactNode;
 }
 
-export function VendedoresTable({ vendedores, pagination }: VendedoresTableProps) {
+export function VendedoresTable({ vendedores, pagination, filtersBar }: VendedoresTableProps) {
   return (
-    <AdminTableContainer title="Vendedores" footer={pagination}>
+    <AdminTableContainer id="vendedores" title="Vendedores" footer={pagination}>
+      {filtersBar}
       {vendedores && vendedores.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="w-full">
