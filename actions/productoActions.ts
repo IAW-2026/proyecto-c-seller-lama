@@ -197,11 +197,22 @@ export async function deleteProductoAction(productoId: string): Promise<ActionRe
   return { success: true, message: 'Producto eliminado exitosamente.' };
 }
 
+type CategoriaProductoResult = {
+  categoria_producto_id: string;
+  nombre: string;
+};
+
 export async function createCategoriaProductoAction(
   nombre: string
-): Promise<ActionResult<{ categoria_producto_id: string; nombre: string }>> {
+): Promise<ActionResult<CategoriaProductoResult>> {
   const inactive = await ensureVendedorActivo();
-  if (inactive) return inactive;
+
+  if (inactive) {
+    return {
+      success: false,
+      message: inactive.message,
+    };
+  }
 
   const { data, error } = await supabaseAdmin
     .from('categoria_producto')
@@ -209,16 +220,16 @@ export async function createCategoriaProductoAction(
     .select('categoria_producto_id, nombre')
     .single();
 
-  if (error || !data) {
+  if (error) {
     return {
       success: false,
-      message: `Error al crear categoria: ${error?.message || 'sin datos'}`,
+      message: 'Error al crear la categoría.',
     };
   }
 
   return {
     success: true,
-    message: 'Categoria creada exitosamente.',
-    data: data as { categoria_producto_id: string; nombre: string },
+    message: 'Categoría creada exitosamente.',
+    data,
   };
 }

@@ -90,10 +90,12 @@ export function ProductoCreateForm({
         return;
       }
 
-      setLocalCategorias((prev) => [...prev, result.data]);
+      const nuevaCategoria = result.data;
+
+      setLocalCategorias((prev) => [...prev, nuevaCategoria]);
       setFormData((prev) => ({
         ...prev,
-        categoria_id: result.data.categoria_producto_id,
+        categoria_id: nuevaCategoria.categoria_producto_id,
       }));
       notification.showSuccess(result.message, 3000);
       closeCategoriaModal();
