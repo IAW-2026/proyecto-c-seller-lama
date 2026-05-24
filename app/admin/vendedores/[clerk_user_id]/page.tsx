@@ -23,7 +23,7 @@ export default async function VendedorEditPage({ params }: Props) {
 
   if (error || !vendedor) {
     return (
-      <main className="min-h-screen bg-[#f6f1e7]">
+      <main className="min-h-screen bg-[#f6f1e7] pt-[56px]">
         <PageContainer>
           <div className="py-8 md:py-12">
             <Link
@@ -43,7 +43,7 @@ export default async function VendedorEditPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-[#f6f1e7]">
+    <main className="min-h-screen bg-[#f6f1e7] pt-[56px]">
       <PageContainer>
         <div className="py-8 md:py-12">
           <PageHeader

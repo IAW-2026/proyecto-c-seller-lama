@@ -201,7 +201,7 @@ export function ProductoEditForm({
   };
 
   return (
-    <main className="min-h-screen bg-[#f6f1e7] p-8">
+    <main className="min-h-screen bg-[#f6f1e7] p-8 pt-[calc(56px+2rem)]">
       <div className="max-w-5xl mx-auto">
         <Link
           href={returnPath}

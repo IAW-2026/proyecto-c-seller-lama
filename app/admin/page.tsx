@@ -50,6 +50,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   return (
     <main className="flex-1 bg-[#f6f1e7]">
+      {/* Spacer for fixed navbar (compact) */}
+      <div className="h-14 md:h-[56px]" />
       <PageContainer>
         <div className="py-8 md:py-12">
           <PageHeader

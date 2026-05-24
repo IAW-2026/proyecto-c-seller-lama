@@ -54,6 +54,8 @@ export default async function ProductosPage({
 
   return (
     <main className="min-h-screen bg-[#f6f1e7]">
+      {/* Spacer for fixed navbar (compact) */}
+      <div className="h-14 md:h-[56px]" />
       <PageContainer>
         <div className="py-12">
           <PageHeader
