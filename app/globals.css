@@ -12,13 +12,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1a1a1a;
-    --foreground: #f6f1e7;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -28,6 +21,18 @@ body {
 /* Smooth transitions and animations */
 * {
   @apply transition-colors duration-200;
+}
+
+/* fadeInUp animation for hero section */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Scrollbar styling */

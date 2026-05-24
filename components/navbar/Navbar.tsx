@@ -2,75 +2,166 @@
 
 import { UserButton, useUser } from '@clerk/nextjs';
 import Link from 'next/link';
-import { PageContainer } from '@/components/ui/PageContainer';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, isSignedIn } = useUser();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
   const roles = Array.isArray(user?.publicMetadata?.roles)
     ? user.publicMetadata.roles
     : [];
   const isSuperAdmin = roles.includes('super_admin');
   const isVendedor = roles.includes('vendedor');
+  const isLanding = pathname === '/';
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handler, { passive: true });
+    handler();
+    return () => window.removeEventListener('scroll', handler);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  const navBg = isLanding && !scrolled
+    ? 'bg-transparent'
+    : 'bg-[#8fa18d]/95 backdrop-blur-xl shadow-lg shadow-black/5';
+
+  const navLink = (href: string, label: string) => {
+    const active = pathname.startsWith(href);
+    return (
+      <Link
+        href={href}
+        className={`
+          relative px-4 py-2 rounded-lg text-sm font-medium tracking-wide
+          transition-all duration-300
+          ${active
+            ? 'bg-white/20 text-white shadow-inner'
+            : 'text-white/80 hover:text-white hover:bg-white/10'
+          }
+        `}
+      >
+        {label}
+      </Link>
+    );
+  };
 
   return (
-    <header className="bg-[#8fa18d] border-b border-[#6f7f6d]/20 sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
-      <PageContainer>
-        <div className="flex items-center justify-between py-4">
-          {/* Logo/Brand */}
-          <Link 
-            href="/" 
-            className="group text-lg font-semibold text-[#f6f1e7] transition-opacity hover:opacity-80"
+    <header
+      className={`
+        fixed top-0 left-0 right-0 z-50
+        transition-all duration-500 ease-out
+        ${navBg}
+      `}
+    >
+      <div className="max-w-screen-2xl mx-auto px-6 md:px-8">
+        <div className="flex items-center justify-between h-16 md:h-[72px]">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="group flex items-center gap-2"
           >
-            LAMA
+            <span className="text-2xl font-bold tracking-[0.15em] text-white transition-opacity hover:opacity-80">
+              LAMA
+            </span>
+            <span className="hidden sm:inline-block text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50 border border-white/20 rounded px-1.5 py-0.5">
+              Seller
+            </span>
           </Link>
 
-          {/* Navigation Links */}
-          <nav className="hidden sm:flex items-center gap-8">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-2">
             {isSignedIn && isSuperAdmin && (
-              <span className="px-4 py-2 rounded-lg text-sm font-medium bg-[#6f7f6d] text-white shadow-md cursor-default">
-                Admin
+              <span className="px-4 py-2 rounded-lg text-sm font-semibold bg-white/20 text-white backdrop-blur-sm border border-white/10">
+                ✦ Admin
               </span>
             )}
             {isSignedIn && !isSuperAdmin && isVendedor && (
               <>
-                <Link 
-                  href="/ventas" 
-                  className={`
-                    px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                    hover:bg-[#7a8c78] hover:text-white hover:shadow-md
-                    ${
-                      pathname.startsWith('/ventas')
-                        ? 'bg-[#6f7f6d] text-white shadow-md'
-                        : 'text-[#f6f1e7]'
-                    }
-                  `}
-                >
-                  Ventas
-                </Link>
-                <Link 
-                  href="/productos" 
-                  className={`
-                    px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                    hover:bg-[#7a8c78] hover:text-white hover:shadow-md
-                    ${
-                      pathname.startsWith('/productos')
-                        ? 'bg-[#6f7f6d] text-white shadow-md'
-                        : 'text-[#f6f1e7]'
-                    }
-                  `}
-                >
-                  Productos
-                </Link>
+                {navLink('/ventas', 'Ventas')}
+                {navLink('/productos', 'Productos')}
               </>
             )}
           </nav>
 
-          {/* User Button */}
-          {isSignedIn && <UserButton />}
+          {/* Right side: auth buttons + user button */}
+          <div className="flex items-center gap-3">
+            {!isSignedIn && (
+              <div className="hidden md:flex items-center gap-3">
+                <Link
+                  href="/sign-in"
+                  className="px-5 py-2 text-sm font-medium text-white/90 hover:text-white transition-colors"
+                >
+                  Iniciar sesión
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="px-5 py-2 rounded-full text-sm font-semibold bg-white text-[#37413d] hover:bg-white/90 transition-all duration-300 shadow-lg shadow-black/10"
+                >
+                  Crear cuenta
+                </Link>
+              </div>
+            )}
+
+            {isSignedIn && <UserButton />}
+
+            {/* Mobile hamburger */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden relative w-8 h-8 flex flex-col items-center justify-center gap-1.5"
+              aria-label="Menú"
+            >
+              <span className={`block w-5 h-0.5 bg-white rounded transition-all duration-300 ${mobileOpen ? 'rotate-45 translate-y-[4px]' : ''}`} />
+              <span className={`block w-5 h-0.5 bg-white rounded transition-all duration-300 ${mobileOpen ? 'opacity-0' : ''}`} />
+              <span className={`block w-5 h-0.5 bg-white rounded transition-all duration-300 ${mobileOpen ? '-rotate-45 -translate-y-[4px]' : ''}`} />
+            </button>
+          </div>
         </div>
-      </PageContainer>
+      </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={`
+          md:hidden overflow-hidden transition-all duration-400 ease-out
+          ${mobileOpen ? 'max-h-96 border-t border-white/10' : 'max-h-0'}
+          bg-[#8fa18d]/98 backdrop-blur-xl
+        `}
+      >
+        <div className="px-6 py-4 flex flex-col gap-2">
+          {isSignedIn && isSuperAdmin && (
+            <span className="px-4 py-3 rounded-lg text-sm font-semibold bg-white/20 text-white text-center">
+              ✦ Admin
+            </span>
+          )}
+          {isSignedIn && !isSuperAdmin && isVendedor && (
+            <>
+              <Link href="/ventas" className="px-4 py-3 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                Ventas
+              </Link>
+              <Link href="/productos" className="px-4 py-3 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                Productos
+              </Link>
+            </>
+          )}
+          {!isSignedIn && (
+            <>
+              <Link href="/sign-in" className="px-4 py-3 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                Iniciar sesión
+              </Link>
+              <Link href="/sign-up" className="px-4 py-3 rounded-lg text-sm font-semibold bg-white text-[#37413d] text-center hover:bg-white/90 transition-colors">
+                Crear cuenta
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
     </header>
   );
 }
