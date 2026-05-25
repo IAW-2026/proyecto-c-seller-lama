@@ -1,28 +1,24 @@
 interface AdminTableContainerProps {
-  title?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
   id?: string;
 }
 
 export function AdminTableContainer({
-  title,
   children,
   footer,
   id,
 }: AdminTableContainerProps) {
   return (
-    <section id={id} className="mb-12 scroll-mt-8">
-      {title && (
-        <h2 className="text-xl font-semibold text-[#37413d] mb-4">
-          {title}
-        </h2>
-      )}
-
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div id={id} className="scroll-mt-24">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-[#d8cfbd]/70 shadow-[0_2px_12px_rgba(55,65,61,0.06)] overflow-hidden transition-all duration-300">
         {children}
-        {footer}
+        {footer && (
+          <div className="border-t border-[#d8cfbd]/50 bg-white/40 p-4">
+            {footer}
+          </div>
+        )}
       </div>
-    </section>
+    </div>
   );
 }

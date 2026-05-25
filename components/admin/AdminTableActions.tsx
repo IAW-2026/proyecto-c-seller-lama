@@ -38,9 +38,9 @@ export function AdminTableActions({
 
   const getActionLabel = () => {
     if (deleteType === 'vendedor') {
-      return vendedorActivo ? 'desactivar' : 'activar';
+      return vendedorActivo ? 'Desactivar' : 'Activar';
     }
-    return 'eliminar';
+    return 'Eliminar';
   };
 
   const executeDelete = () => {
@@ -79,7 +79,7 @@ export function AdminTableActions({
 
   const handleDelete = () => {
     notification.showWithAction(
-      `¿Estás seguro de que querés ${getActionLabel()} ${getDeleteLabel()}?`,
+      `¿Estás seguro de que querés ${getActionLabel().toLowerCase()} ${getDeleteLabel()}?`,
       'warning',
       {
         label: `Sí, ${getActionLabel()}`,
@@ -90,11 +90,21 @@ export function AdminTableActions({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center justify-end gap-2">
       <Link
         href={editHref}
-        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#8fa18d]/15 text-[#37413d] hover:bg-[#8fa18d]/25 transition-colors"
+        className="
+          inline-flex items-center gap-1.5
+          px-3 py-1.5 rounded-lg text-xs font-semibold
+          bg-white border border-[#d8cfbd] text-[#37413d]
+          transition-all duration-300
+          hover:bg-[#f6f1e7] hover:border-[#8fa18d]/40 hover:text-[#5a6d58]
+        "
       >
+        <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 113 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
         Editar
       </Link>
 
@@ -102,12 +112,27 @@ export function AdminTableActions({
         type="button"
         onClick={handleDelete}
         disabled={isPending}
-        className={
-          isActivateAction
-            ? 'px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-50'
-            : 'px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors disabled:opacity-50'
-        }
+        className={`
+          inline-flex items-center gap-1.5
+          px-3 py-1.5 rounded-lg text-xs font-semibold
+          transition-all duration-300 disabled:opacity-50 cursor-pointer
+          ${
+            isActivateAction
+              ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100/70 hover:border-emerald-300'
+              : 'bg-red-50 border border-red-200 text-red-700 hover:bg-red-100/70 hover:border-red-300'
+          }
+        `}
       >
+        {isActivateAction ? (
+          <svg className="w-3.5 h-3.5 opacity-85" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg className="w-3.5 h-3.5 opacity-85" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+          </svg>
+        )}
         {isPending ? 'Procesando...' : getActionLabel()}
       </button>
     </div>

@@ -3,9 +3,11 @@ import { PageContainer } from '@/components/ui/PageContainer';
 
 export default function SignInPage() {
   return (
-    <main className="flex-1 bg-gradient-to-b from-[#f6f1e7] to-white">
+    <main className="flex-1 bg-gradient-to-b from-[#f6f1e7] to-white relative min-h-screen">
+      {/* Spacer for fixed navbar */}
+      <div className="h-14 md:h-[56px]" />
       <PageContainer>
-        <div className="py-8 flex items-center justify-center min-h-[calc(100vh-80px)]">
+        <div className="py-12 flex items-center justify-center min-h-[calc(100vh-120px)]">
           <div className="w-full max-w-md">
             {/* Branding */}
             <div className="text-center mb-6">

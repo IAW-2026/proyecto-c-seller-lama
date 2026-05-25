@@ -30,61 +30,78 @@ export function ProductFilters({
   categoriaOptions,
 }: ProductFiltersProps) {
   return (
-    <form method="GET" className="mb-6">
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto]">
-        <SearchInput
-          name="search"
-          label="Busqueda"
-          placeholder="Buscar por titulo, talle o marca"
-          defaultValue={search}
-        />
+    <div className="mb-8 sticky top-[56px] z-30">
+      <form method="GET">
+        <div className="rounded-2xl border border-[#d8cfbd]/70 bg-white/60 backdrop-blur-lg p-5 md:p-6 shadow-[0_2px_12px_rgba(55,65,61,0.05)]">
+          {/* Top row: search */}
+          <div className="mb-4">
+            <SearchInput
+              name="search"
+              label="Búsqueda"
+              placeholder="Buscar por título, talle o marca"
+              defaultValue={search}
+            />
+          </div>
 
-        <FilterSelect
-          name="estado"
-          label="Estado"
-          options={estadoOptions}
-          defaultValue={estado || 'todos'}
-        />
+          {/* Filter selects grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+            <FilterSelect
+              name="estado"
+              label="Estado"
+              options={estadoOptions}
+              defaultValue={estado || 'todos'}
+            />
 
-        <FilterSelect
-          name="genero"
-          label="Genero"
-          options={generoOptions}
-          defaultValue={genero || 'todos'}
-        />
+            <FilterSelect
+              name="genero"
+              label="Género"
+              options={generoOptions}
+              defaultValue={genero || 'todos'}
+            />
 
-        <SearchInput
-          name="talle"
-          label="Talle"
-          placeholder="Ej: M, 10, XL"
-          defaultValue={talle}
-        />
+            <SearchInput
+              name="talle"
+              label="Talle"
+              placeholder="Ej: M, 10, XL"
+              defaultValue={talle}
+            />
 
-        <FilterSelect
-          name="categoria"
-          label="Categoria"
-          options={categoriaOptions}
-          defaultValue={categoria || 'todos'}
-        />
+            <FilterSelect
+              name="categoria"
+              label="Categoría"
+              options={categoriaOptions}
+              defaultValue={categoria || 'todos'}
+            />
+          </div>
 
-        <div className="flex flex-col gap-2 text-sm font-medium text-[#37413d]">
-          <span>Acciones</span>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="submit"
-              className="rounded-lg border border-[#8fa18d] bg-[#8fa18d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#7e937c]"
-            >
-              Aplicar
-            </button>
+          {/* Actions row */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#d8cfbd]/40">
             <Link
               href="/productos"
-              className="rounded-lg border border-[#d8cfbd] bg-white px-4 py-2 text-sm font-semibold text-[#37413d] transition hover:bg-[#ede6d8]"
+              className="
+                rounded-xl border border-[#d8cfbd] bg-white
+                px-5 py-2.5 text-sm font-semibold text-[#6f7f6d]
+                transition-all duration-300
+                hover:bg-[#f6f1e7] hover:text-[#37413d] hover:border-[#8fa18d]/30
+              "
             >
               Limpiar
             </Link>
+            <button
+              type="submit"
+              className="
+                rounded-xl bg-[#8fa18d]
+                px-6 py-2.5 text-sm font-semibold text-white
+                transition-all duration-300
+                hover:bg-[#7a8c78] hover:shadow-lg hover:shadow-[#8fa18d]/25
+                active:scale-[0.98]
+              "
+            >
+              Aplicar filtros
+            </button>
           </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }

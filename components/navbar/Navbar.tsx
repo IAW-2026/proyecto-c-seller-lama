@@ -83,9 +83,7 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1.5">
             {isSignedIn && isSuperAdmin && (
-              <span className="px-3.5 py-1.5 rounded-lg text-[13px] font-semibold bg-white/20 text-white backdrop-blur-sm border border-white/10">
-                ✦ Admin
-              </span>
+              navLink('/admin', 'Admin')
             )}
             {isSignedIn && !isSuperAdmin && isVendedor && (
               <>
@@ -140,9 +138,12 @@ export function Navbar() {
       >
         <div className="px-6 py-4 flex flex-col gap-2">
           {isSignedIn && isSuperAdmin && (
-            <span className="px-4 py-3 rounded-lg text-sm font-semibold bg-white/20 text-white text-center">
-              ✦ Admin
-            </span>
+            <Link
+              href="/admin"
+              className="px-4 py-3 rounded-lg text-sm font-medium text-white hover:bg-white/10 transition-colors"
+            >
+              Admin
+            </Link>
           )}
           {isSignedIn && !isSuperAdmin && isVendedor && (
             <>

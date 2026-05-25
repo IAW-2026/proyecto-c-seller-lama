@@ -17,69 +17,71 @@ interface ProductosTableProps {
 
 export function ProductosTable({ productos, pagination, filtersBar }: ProductosTableProps) {
   return (
-    <AdminTableContainer id="productos" title="Productos" footer={pagination}>
+    <AdminTableContainer id="productos" footer={pagination}>
       {filtersBar}
       {productos && productos.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-[#f8f6f1] border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Título</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Vendedor</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Precio</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Estado Prenda</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Publicación</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Talle</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Género</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Creación</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-slate-700">Acciones</th>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b border-[#d8cfbd]/60 bg-[#ede6d8]/30">
+                <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Producto</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Vendedor</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Precio</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Prenda</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Publicación</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Talle</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Género</th>
+                <th className="px-6 py-4 text-left text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Creación</th>
+                <th className="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-wider text-[#6f7f6d]">Acciones</th>
               </tr>
             </thead>
 
-            <tbody>
+            <tbody className="divide-y divide-[#d8cfbd]/30">
               {productos.map((producto) => (
                 <tr
                   key={producto.producto_id}
-                  className="border-b border-slate-200 hover:bg-slate-50 transition-colors"
+                  className="group hover:bg-[#ede6d8]/20 transition-colors duration-200"
                 >
-                  <td className="px-6 py-4 text-sm font-medium text-[#37413d] max-w-xs truncate">
+                  <td className="px-6 py-4.5 text-sm font-bold text-[#37413d] max-w-xs truncate group-hover:text-[#5a6d58] transition-colors duration-200">
                     {producto.titulo}
                   </td>
 
-                  <td className="px-6 py-4 text-sm text-slate-600">
+                  <td className="px-6 py-4.5 text-sm text-[#6f7f6d]">
                     {producto.vendedor?.nombre_vendedor || 'Sin vendedor'}
                   </td>
 
-                  <td className="px-6 py-4 text-sm font-medium text-[#37413d]">
+                  <td className="px-6 py-4.5 text-sm font-bold text-[#37413d]">
                     ${producto.precio.toLocaleString('es-AR')}
                   </td>
 
-                  <td className="px-6 py-4 text-sm text-slate-600 capitalize">
+                  <td className="px-6 py-4.5 text-sm text-[#6f7f6d] capitalize">
                     {producto.estado_prenda}
                   </td>
 
-                  <td className="px-6 py-4 text-sm">
+                  <td className="px-6 py-4.5 text-sm">
                     <StatusBadge status={producto.estado_publicacion} />
                   </td>
 
-                  <td className="px-6 py-4 text-sm text-slate-600">
+                  <td className="px-6 py-4.5 text-sm text-[#6f7f6d]">
                     {producto.talle || '-'}
                   </td>
 
-                  <td className="px-6 py-4 text-sm text-slate-600 capitalize">
+                  <td className="px-6 py-4.5 text-sm text-[#6f7f6d] capitalize">
                     {producto.genero}
                   </td>
 
-                  <td className="px-6 py-4 text-sm text-slate-600">
+                  <td className="px-6 py-4.5 text-sm text-[#6f7f6d]">
                     {new Date(producto.fecha_creacion).toLocaleDateString('es-AR')}
                   </td>
 
-                  <td className="px-6 py-4 text-sm">
-                    <AdminTableActions
-                      editHref={`/productos/${producto.producto_id}?from=admin`}
-                      deleteType="producto"
-                      deleteId={producto.producto_id}
-                    />
+                  <td className="px-6 py-4.5 text-sm text-right">
+                    <div className="inline-flex justify-end">
+                      <AdminTableActions
+                        editHref={`/productos/${producto.producto_id}?from=admin`}
+                        deleteType="producto"
+                        deleteId={producto.producto_id}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -87,8 +89,14 @@ export function ProductosTable({ productos, pagination, filtersBar }: ProductosT
           </table>
         </div>
       ) : (
-        <div className="p-6">
-          <p className="text-slate-500">No hay productos</p>
+        <div className="p-12 text-center">
+          <div className="inline-flex w-12 h-12 rounded-xl bg-[#f6f1e7] items-center justify-center text-[#b4b0a6] mb-3">
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" />
+              <line x1="7" y1="7" x2="7.01" y2="7" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-[#37413d]">No hay productos disponibles</p>
         </div>
       )}
     </AdminTableContainer>
