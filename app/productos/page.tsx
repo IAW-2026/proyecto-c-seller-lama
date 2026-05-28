@@ -83,30 +83,6 @@ export default async function ProductosPage({
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/productos/nuevo"
-                  className={`
-                    inline-flex items-center gap-2
-                    bg-[#8fa18d] text-white font-semibold
-                    py-3 px-6 rounded-xl
-                    transition-all duration-300
-                    shadow-[0_2px_12px_rgba(143,161,141,0.25)]
-                    ${
-                      vendedorActivo
-                        ? 'hover:bg-[#7a8c78] hover:shadow-[0_8px_24px_rgba(143,161,141,0.35)] hover:-translate-y-0.5 active:scale-[0.98]'
-                        : 'opacity-60 cursor-not-allowed pointer-events-none'
-                    }
-                  `}
-                  aria-disabled={!vendedorActivo}
-                >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Nuevo producto
-                </Link>
-              </div>
             </div>
           </div>
 
@@ -115,6 +91,31 @@ export default async function ProductosPage({
               <VendedorInactivoBanner />
             </div>
           )}
+
+          <div className="mb-6 flex items-center justify-end">
+            <Link
+              href="/productos/nuevo"
+              className={`
+                inline-flex items-center gap-2
+                bg-[#8fa18d] text-white font-semibold
+                py-2.5 px-5 rounded-xl
+                transition-all duration-300
+                shadow-[0_2px_12px_rgba(143,161,141,0.25)]
+                ${
+                  vendedorActivo
+                    ? 'hover:bg-[#7a8c78] hover:shadow-[0_8px_24px_rgba(143,161,141,0.35)] hover:-translate-y-0.5 active:scale-[0.98]'
+                    : 'opacity-60 cursor-not-allowed pointer-events-none'
+                }
+              `}
+              aria-disabled={!vendedorActivo}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nuevo producto
+            </Link>
+          </div>
 
           {/* Stats cards */}
           <ProductosStats productos={productos} />

@@ -18,7 +18,7 @@ import type {
   ProductoConVendedor,
 } from '@/types/admin-filters';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 5;
 const TODOS_VALUE = 'todos';
 
 const normalizeSearchTerm = (value?: string) => {
