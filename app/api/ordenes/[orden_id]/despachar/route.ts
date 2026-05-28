@@ -89,6 +89,7 @@ export async function POST(
     .update({
       estado_envio: ESTADO_ENVIO.DESPACHADO,
       codigo_seguimiento: envioData.codigo_seguimiento,
+      fecha_actualizacion: new Date().toISOString(),
     })
     .eq('orden_id', orden_id);
 

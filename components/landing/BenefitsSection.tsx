@@ -66,10 +66,10 @@ export function BenefitsSection() {
           {benefits.map((benefit) => (
             <div
               key={benefit.title}
-              className="group relative p-8 rounded-2xl bg-[#ede6d8] border border-[#d8cfbd] hover:border-[#8fa18d]/40 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#8fa18d]/10"
+              className="group relative p-8 rounded-2xl bg-[#e6ddd0]/80 border border-[#d5cbb8]/60 shadow-sm hover:border-[#8fa18d]/40 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#8fa18d]/10"
             >
               {/* Icon */}
-              <div className="w-12 h-12 rounded-xl bg-[#8fa18d]/10 text-[#8fa18d] flex items-center justify-center mb-6 group-hover:bg-[#8fa18d] group-hover:text-white transition-all duration-500">
+              <div className="w-12 h-12 rounded-xl bg-[#d5cbb8]/40 text-[#6b7d69] flex items-center justify-center mb-6 group-hover:bg-[#8fa18d] group-hover:text-white transition-all duration-500">
                 {benefit.icon}
               </div>
 

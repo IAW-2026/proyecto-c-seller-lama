@@ -97,7 +97,7 @@ export function ProductFormFields({
       <FormField label="Categoría" error={errors.categoria_id} required>
         <select
           name="categoria_id"
-          value={formData.categoria_id}
+          value={formData.categoria_id ?? ''}
           onChange={handleCategoriaChange}
           disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
@@ -171,7 +171,7 @@ export function ProductFormFields({
       <FormField label="Estado de la prenda">
         <select
           name="estado_prenda"
-          value={formData.estado_prenda}
+          value={formData.estado_prenda ?? ''}
           onChange={onInputChange}
           disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
@@ -186,7 +186,7 @@ export function ProductFormFields({
       <FormField label="Género" required>
         <select
           name="genero"
-          value={formData.genero}
+          value={formData.genero ?? ''}
           onChange={onInputChange}
           disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"
@@ -201,7 +201,7 @@ export function ProductFormFields({
       <FormField label="Estado de publicación">
         <select
           name="estado_publicacion"
-          value={formData.estado_publicacion}
+          value={formData.estado_publicacion ?? ''}
           onChange={onInputChange}
           disabled={disabled}
           className="w-full px-4 py-3 bg-white text-[#37413d] border border-[#d8cfbd] rounded-lg focus:border-[#8fa18d] focus:ring-2 focus:ring-[#8fa18d]/20 outline-none transition"

@@ -48,18 +48,15 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const buildOrdenesPageHref = (page: number) =>
     buildAdminQueryString(filters, { ordenes: { page } }) + '#ordenes';
 
-  // Calculate statistics from current data or fallback to mockup references
   const totalVendedores = vendedores.total || 24;
   const totalProductos = productos.total || 128;
   const totalOrdenes = ordenes.total || 56;
 
-  // Derive total incomes: sum of all orders in this list (or fallback to mockup)
   const calculatedIngresos = ordenes.items
     .filter((o) => o.estado_pago === 'aprobado' || o.estado_general === 'pagada')
     .reduce((acc, curr) => acc + curr.total, 0);
   const totalIngresos = calculatedIngresos || 2450000;
 
-  // Derive pending: inactive sellers + pending orders (or fallback to mockup)
   const pendingSellers = vendedores.items.filter((v) => !v.activo).length;
   const pendingOrders = ordenes.items.filter(
     (o) => o.estado_general === 'pendiente_pago' || o.estado_general === 'en_preparacion'
@@ -78,7 +75,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
       <PageContainer>
         <div className="relative py-7 md:py-9">
-          {/* Page Header — premium, matching Ventas and Products */}
           <div className="mb-7 md:mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
@@ -96,7 +92,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               </p>
             </div>
             
-            {/* Elegant abstract dashboard detail */}
+            {/* dashboard detail */}
             <div className="hidden lg:flex items-center gap-3 bg-white/40 backdrop-blur-sm border border-[#d8cfbd]/50 rounded-2xl p-4 shadow-sm">
               <div className="w-10 h-10 rounded-xl bg-[#8fa18d]/10 flex items-center justify-center text-[#8fa18d]">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
