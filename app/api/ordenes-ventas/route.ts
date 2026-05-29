@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
   }
 
   const ordenItems = items.map((item) => ({
-    orden_id,
+    orden_id: createdOrden.orden_id,
     producto_id: item.producto_id,
     precio_unitario: item.precio_unitario,
     fecha_creacion: now,
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     .insert(ordenItems);
 
   if (insertItemsError) {
-    await supabase.from('orden').delete().eq('orden_id', orden_id);
+    await supabase.from('orden').delete().eq('orden_id', createdOrden.orden_id);
     return jsonError(insertItemsError.message, 500);
   }
 
@@ -169,8 +169,8 @@ export async function POST(request: NextRequest) {
     .in('producto_id', productIds);
 
   if (updateProductosError) {
-    await supabase.from('orden_item').delete().eq('orden_id', orden_id);
-    await supabase.from('orden').delete().eq('orden_id', orden_id);
+    await supabase.from('orden_item').delete().eq('orden_id', createdOrden.orden_id);
+    await supabase.from('orden').delete().eq('orden_id', createdOrden.orden_id);
     return jsonError(updateProductosError.message, 500);
   }
 
