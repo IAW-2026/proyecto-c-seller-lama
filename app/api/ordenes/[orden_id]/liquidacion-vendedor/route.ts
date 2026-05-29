@@ -32,8 +32,8 @@ export async function PATCH(
       fecha_liquidacion_vendedor: fechaActualizacion,
       fecha_actualizacion: fechaActualizacion,
     })
-    .eq('orden_id', orden_id)
-    .select('orden_id')
+    .eq('nro_orden', orden_id)
+    .select('nro_orden')
     .single();
 
   if (updateError) {

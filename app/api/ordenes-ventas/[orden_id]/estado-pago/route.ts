@@ -49,8 +49,8 @@ export async function PATCH(
       motivo: data.motivo || null,
       fecha_actualizacion: now,
     })
-    .eq('orden_id', orden_id)
-    .select('orden_id, estado_pago, estado_general, fecha_actualizacion');
+    .eq('nro_orden', orden_id)
+    .select('nro_orden, estado_pago, estado_general, fecha_actualizacion');
 
   if (updateError) {
     return jsonError(updateError.message, 500);
@@ -62,5 +62,13 @@ export async function PATCH(
     return jsonError('Orden no encontrada', 404);
   }
 
-  return NextResponse.json(first, { status: 200 });
+  return NextResponse.json(
+    {
+      orden_id: first.nro_orden,
+      estado_pago: first.estado_pago,
+      estado_general: first.estado_general,
+      fecha_actualizacion: first.fecha_actualizacion,
+    },
+    { status: 200 }
+  );
 }

@@ -44,8 +44,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
       codigo_seguimiento: data.codigo_seguimiento || null,
       fecha_actualizacion: now,
     })
-    .eq('orden_id', orden_id)
-    .select('orden_id, estado_general, estado_envio, fecha_actualizacion');
+    .eq('nro_orden', orden_id)
+    .select('nro_orden, estado_general, estado_envio, fecha_actualizacion');
 
   if (updateError) {
     return jsonError(updateError.message, 500);
@@ -56,5 +56,13 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
     return jsonError('Orden no encontrada', 404);
   }
 
-  return NextResponse.json(first, { status: 200 });
+  return NextResponse.json(
+  {
+    orden_id: first.nro_orden,
+    estado_general: first.estado_general,
+    estado_envio: first.estado_envio,
+    fecha_actualizacion: first.fecha_actualizacion,
+  },
+  { status: 200 }
+);
 }
