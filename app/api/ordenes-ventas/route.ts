@@ -128,22 +128,20 @@ export async function POST(request: NextRequest) {
   const vendedorId = productosEncontrados[0]?.clerk_user_id;
 
   const { data: createdOrden, error: insertOrdenError } = await supabase
-    .from('orden')
-    .insert({
-      orden_id,
-      nro_orden: orden_id,
-      comprador_id,
-      clerk_user_id: vendedorId,
-      total: precio_total,
-      estado_general: ESTADO_GENERAL.PENDIENTE_PAGO,
-      estado_pago: ESTADO_PAGO.PENDIENTE,
-      estado_envio: ESTADO_ENVIO.PENDIENTE,
-      direccion_envio,
-      fecha_creacion: now,
-      fecha_actualizacion: now,
-    })
-    .select('orden_id, estado_general, estado_pago, estado_envio, fecha_creacion')
-    .single();
+  .from('orden')
+  .insert({
+    nro_orden: orden_id,
+    clerk_user_id: comprador_id,
+    total: precio_total,
+    estado_general: ESTADO_GENERAL.PENDIENTE_PAGO,
+    estado_pago: ESTADO_PAGO.PENDIENTE,
+    estado_envio: ESTADO_ENVIO.PENDIENTE,
+    direccion_envio,
+    fecha_creacion: now,
+    fecha_actualizacion: now,
+  })
+  .select('orden_id, estado_general, estado_pago, estado_envio, fecha_creacion')
+  .single();
 
   if (insertOrdenError) {
     return jsonError(insertOrdenError.message, 500);
