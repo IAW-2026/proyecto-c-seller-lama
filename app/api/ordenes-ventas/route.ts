@@ -4,6 +4,52 @@ import type { OrdenConItems } from '@/types';
 import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, isNumber, jsonError, parseJson } from '@/app/api/_utils';
 
+const DEFAULT_PAGE_SIZE = 10;
+
+type OrdenItemRecord = {
+  producto_id: string;
+  precio_unitario: number;
+};
+
+type OrdenRecord = {
+  nro_orden: string;
+  clerk_user_id: string;
+  total: number;
+  direccion_envio: string;
+  estado_general: string;
+  estado_pago: string;
+  estado_envio: string;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+  orden_item: OrdenItemRecord[] | null;
+};
+
+const parsePositiveInt = (value: string | null, fallback: number) => {
+  const parsed = Number.parseInt(value || '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const mapOrdenResponse = (orden: OrdenRecord) => {
+  const items = (orden.orden_item || []).map((item) => ({
+    producto_id: item.producto_id,
+    precio_unitario: item.precio_unitario,
+  }));
+
+  return {
+    orden_id: orden.nro_orden,
+    comprador_id: orden.clerk_user_id,
+    items,
+    producto_ids: items.map((item) => item.producto_id),
+    total: orden.total,
+    direccion_envio: orden.direccion_envio,
+    estado_general: orden.estado_general,
+    estado_pago: orden.estado_pago,
+    estado_envio: orden.estado_envio,
+    fecha_creacion: orden.fecha_creacion,
+    fecha_actualizacion: orden.fecha_actualizacion,
+  };
+};
+
 type OrdenItemInput = {
   producto_id: string;
   precio_unitario: number;
@@ -42,6 +88,67 @@ const ordenSelect = `
     )
   )
 `;
+
+const ordenListSelect = `
+  nro_orden,
+  clerk_user_id,
+  total,
+  estado_general,
+  estado_pago,
+  estado_envio,
+  direccion_envio,
+  fecha_creacion,
+  fecha_actualizacion,
+  orden_item (
+    producto_id,
+    precio_unitario
+  )
+`;
+
+/*
+Endpoint para listar ordenes de venta de un comprador
+*/
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const comprador_id = searchParams.get('comprador_id');
+
+  if (!isNonEmptyString(comprador_id)) {
+    return jsonError('comprador_id es requerido', 400);
+  }
+
+  const page = parsePositiveInt(searchParams.get('page'), 1);
+  const pageSize = parsePositiveInt(
+    searchParams.get('pageSize'),
+    DEFAULT_PAGE_SIZE
+  );
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await supabase
+    .from('orden')
+    .select(ordenListSelect, { count: 'exact' })
+    .eq('clerk_user_id', comprador_id)
+    .order('fecha_creacion', { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    return jsonError(error.message, 500);
+  }
+
+  const items = (data || []).map((orden) =>
+    mapOrdenResponse(orden as OrdenRecord)
+  );
+
+  return NextResponse.json(
+    {
+      items,
+      total: count || 0,
+      page,
+      pageSize,
+    },
+    { status: 200 }
+  );
+}
 
 /*
 Endpoint para crear una nueva orden de venta 
