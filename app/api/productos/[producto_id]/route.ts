@@ -17,7 +17,6 @@ export async function GET(
     return jsonError('producto_id es requerido', 400);
   }
 
-  // Traer producto de Supabase
   const { data: producto, error } = await supabase
     .from('producto')
     .select('*')
@@ -35,7 +34,6 @@ export async function GET(
 
   const response = producto as Producto;
 
-  // NOTE: La BD usa clerk_user_id para el vendedor. Se expone vendedor_id como alias.
   return NextResponse.json(
     {
       ...response,
