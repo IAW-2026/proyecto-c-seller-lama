@@ -4,7 +4,9 @@ import { ESTADO_ENVIO, ESTADO_PAGO, type OrdenConItems } from '@/types/orden';
 interface VentasTableProps {
   ordenes: OrdenConItems[];
   onDespachar: (orden: OrdenConItems) => void;
+  onVerEnvio: (orden: OrdenConItems) => void;
   despachandoId?: string | null;
+  viendoEnvioId?: string | null;
   vendedorActivo: boolean;
 }
 
@@ -26,16 +28,26 @@ const estadosNoDespachables: string[] = [
   ESTADO_ENVIO.CANCELADO,
 ];
 
+const estadosConEnvio: string[] = [
+  ESTADO_ENVIO.DESPACHADO,
+  ESTADO_ENVIO.ENTREGADO,
+];
+
 const PuedeDespachar = (orden: OrdenConItems) => {
   if (orden.estado_pago !== ESTADO_PAGO.APROBADO) return false;
 
   return !estadosNoDespachables.includes(orden.estado_envio);
 };
 
+const PuedeVerEnvio = (orden: OrdenConItems) =>
+  estadosConEnvio.includes(orden.estado_envio);
+
 export function VentasTable({
   ordenes,
   onDespachar,
+  onVerEnvio,
   despachandoId,
+  viendoEnvioId,
   vendedorActivo,
 }: VentasTableProps) {
   return (
@@ -131,6 +143,24 @@ export function VentasTable({
                       {despachandoId === orden.orden_id
                         ? 'Despachando...'
                         : 'Despachar'}
+                    </button>
+                  ) : PuedeVerEnvio(orden) ? (
+                    <button
+                      type="button"
+                      onClick={() => onVerEnvio(orden)}
+                      disabled={viendoEnvioId === orden.orden_id}
+                      className="
+                        rounded-lg bg-[#37413d] px-4 py-2
+                        text-xs font-semibold text-white
+                        transition-all duration-300
+                        hover:bg-[#2f3834] hover:shadow-md hover:shadow-[#37413d]/25
+                        active:scale-[0.97]
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                      "
+                    >
+                      {viendoEnvioId === orden.orden_id
+                        ? 'Cargando...'
+                        : 'Ver envio'}
                     </button>
                   ) : (
                     <span className="text-xs text-[#d8cfbd]">—</span>

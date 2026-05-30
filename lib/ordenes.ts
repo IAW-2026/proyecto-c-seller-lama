@@ -1,3 +1,5 @@
+import type { EnvioDetalle } from '@/types/envio';
+
 type DespacharOrdenResponse = {
   orden_id: string;
   envio_id?: string;
@@ -22,4 +24,24 @@ export const despacharOrden = async (
   }
 
   return data as DespacharOrdenResponse;
+};
+
+export const obtenerEnvioOrden = async (
+  nroOrden: string
+): Promise<EnvioDetalle> => {
+  const response = await fetch(
+    `/api/ordenes/${encodeURIComponent(nroOrden)}/envio`
+  );
+
+  const data = (await response.json()) as EnvioDetalle | { error?: string };
+
+  if (!response.ok) {
+    const message =
+      'error' in data && data.error
+        ? data.error
+        : 'Error al consultar el envio';
+    throw new Error(message);
+  }
+
+  return data as EnvioDetalle;
 };
