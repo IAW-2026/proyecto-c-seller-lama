@@ -19,6 +19,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "LAMA Seller — Marketplace de moda circular",
   description: "Vendé tu ropa vintage y usada en LAMA. Publicá productos, gestioná ventas y cobrá de forma segura en el marketplace de moda circular.",
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({

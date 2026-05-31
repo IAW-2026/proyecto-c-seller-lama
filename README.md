@@ -1,10 +1,8 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/ADcDbJbt)
 # seller
+Aplicacion web para el rol vendedor del Proyecto IAW 2026 (Delivery y Marketplace). Permite publicar y editar productos, administrar stock e imagenes, ver ordenes recibidas, gestionar envios y revisar estadisticas de ventas desde un panel unificado.
 
-Aplicación **Seller** del [Proyecto IAW 2026](https://iaw-2026.github.io/proyecto/) — comisión `<!-- completar -->`.
+Deploy: https://proyecto-c-seller-lama.vercel.app/
 
-Esta app corresponde al rol del vendedor en los proyectos de tipo **B (Delivery)** y **C (Marketplace)**.
-
----
-
-Enunciado completo: <https://iaw-2026.github.io/proyecto/>
+Accesos
+- Administrador: solicitar credenciales al equipo desarrollador.
+- Vendedor: crear cuenta desde /sign-up y luego iniciar sesion desde /sign-in.

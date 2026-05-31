@@ -68,6 +68,10 @@ export async function GET(
       }
     );
 
+    if (response.status === 404 || response.status === 204) {
+      return jsonError('No hay envio disponible', 404);
+    }
+
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
       console.error('Shipping App response not ok', {
