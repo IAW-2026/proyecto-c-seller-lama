@@ -2,11 +2,12 @@
 
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function AuthRedirectPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const [roleAttempts, setRoleAttempts] = useState(0);
 
   useEffect(() => {
     // Esperar que Clerk haya cargado completamente la sesión en el cliente
@@ -24,9 +25,18 @@ export default function AuthRedirectPage() {
     } else if (roles.includes('vendedor')) {
       router.replace('/ventas');
     } else {
-      router.replace('/sign-in');
+      if (roleAttempts < 5) {
+        const timeoutId = setTimeout(async () => {
+          await user.reload();
+          setRoleAttempts((attempts) => attempts + 1);
+        }, 800);
+
+        return () => clearTimeout(timeoutId);
+      }
+
+      router.replace('/ventas');
     }
-  }, [isLoaded, user, router]);
+  }, [isLoaded, user, router, roleAttempts]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f6f1e7]">
