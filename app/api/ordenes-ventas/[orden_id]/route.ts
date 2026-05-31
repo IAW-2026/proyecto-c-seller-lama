@@ -5,6 +5,9 @@ import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 type OrdenItemRecord = {
   producto_id: string;
   precio_unitario: number;
+  producto?: {
+    clerk_user_id: string;
+  }[] | null;
 };
 
 type OrdenRecord = {
@@ -32,7 +35,10 @@ const ordenDetailSelect = `
   fecha_actualizacion,
   orden_item (
     producto_id,
-    precio_unitario
+    precio_unitario,
+    producto (
+      clerk_user_id
+    )
   )
 `;
 
@@ -45,6 +51,7 @@ const mapOrdenResponse = (orden: OrdenRecord) => {
   return {
     orden_id: orden.nro_orden,
     comprador_id: orden.clerk_user_id,
+    vendedor_id: orden.orden_item?.[0]?.producto?.[0]?.clerk_user_id ?? null,
     items,
     producto_ids: items.map((item) => item.producto_id),
     total: orden.total,

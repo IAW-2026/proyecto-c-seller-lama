@@ -34,7 +34,11 @@ export async function PATCH(
     })
     .eq('nro_orden', orden_id)
     .select('nro_orden')
-    .single();
+    .maybeSingle();
+
+  if (updateError?.code === 'PGRST116') {
+    return jsonError('Orden no encontrada', 404);
+  }
 
   if (updateError) {
     return jsonError(updateError.message, 500);
