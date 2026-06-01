@@ -7,7 +7,8 @@ type OrdenItemRecord = {
   precio_unitario: number;
   producto?: {
     clerk_user_id: string;
-  } | { clerk_user_id: string }[] | null;
+    titulo?: string | null;
+  } | { clerk_user_id: string; titulo?: string | null }[] | null;
 };
 
 type OrdenRecord = {
@@ -37,7 +38,8 @@ const ordenDetailSelect = `
     producto_id,
     precio_unitario,
     producto (
-      clerk_user_id
+      clerk_user_id,
+      titulo
     )
   )
 `;
@@ -55,10 +57,18 @@ const mapOrdenResponse = (orden: OrdenRecord) => {
     null
   );
 
-  const items = (orden.orden_item || []).map((item) => ({
-    producto_id: item.producto_id,
-    precio_unitario: item.precio_unitario,
-  }));
+  const items = (orden.orden_item || []).map((item) => {
+    const producto = item.producto;
+    const titulo = Array.isArray(producto)
+      ? producto[0]?.titulo ?? null
+      : producto?.titulo ?? null;
+
+    return {
+      producto_id: item.producto_id,
+      precio_unitario: item.precio_unitario,
+      titulo,
+    };
+  });
 
   return {
     orden_id: orden.nro_orden,

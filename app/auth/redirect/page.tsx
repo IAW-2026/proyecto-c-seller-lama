@@ -27,8 +27,11 @@ export default function AuthRedirectPage() {
     } else {
       if (roleAttempts < 5) {
         const timeoutId = setTimeout(async () => {
-          await user.reload();
-          setRoleAttempts((attempts) => attempts + 1);
+          try {
+            await user.reload();
+          } finally {
+            setRoleAttempts((attempts) => attempts + 1);
+          }
         }, 800);
 
         return () => clearTimeout(timeoutId);
