@@ -34,7 +34,7 @@ export function VentasClient({ ordenes, vendedorActivo }: VentasClientProps) {
     setDespachandoId(orden.orden_id);
 
     try {
-      await despacharOrden(orden.orden_id);
+      await despacharOrden(orden.nro_orden);
       notification.showSuccess('Orden despachada exitosamente.', 3000);
       router.refresh();
     } catch (error) {

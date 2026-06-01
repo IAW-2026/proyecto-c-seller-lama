@@ -10,9 +10,9 @@ type DespacharOrdenResponse = {
 };
 
 export const despacharOrden = async (
-  ordenId: string
+  nroOrden: string
 ): Promise<DespacharOrdenResponse> => {
-  const response = await fetch(`/api/ordenes/${ordenId}/despachar`, {
+  const response = await fetch(`/api/ordenes/${encodeURIComponent(nroOrden)}/despachar`, {
     method: 'POST',
   });
 
