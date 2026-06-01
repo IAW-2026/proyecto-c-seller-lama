@@ -44,8 +44,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
       codigo_seguimiento: data.codigo_seguimiento || null,
       fecha_actualizacion: now,
     })
-    .eq('nro_orden', orden_id)
-    .select('nro_orden, estado_general, estado_envio, fecha_actualizacion');
+    .eq('orden_id', orden_id)
+    .select('orden_id, estado_general, estado_envio, fecha_actualizacion');
 
   if (updateError) {
     return jsonError(updateError.message, 500);
@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
 
   return NextResponse.json(
   {
-    orden_id: first.nro_orden,
+    orden_id: first.orden_id,
     estado_general: first.estado_general,
     estado_envio: first.estado_envio,
     fecha_actualizacion: first.fecha_actualizacion,
