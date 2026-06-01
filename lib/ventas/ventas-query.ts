@@ -18,7 +18,7 @@ import type {
   VentasStatsSummary,
 } from '@/types/ventas-filters';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 5;
 const TODOS_VALUE = 'todos';
 
 // Sirve para evitar errores de TypeScript cuando accedes a item.orden o item.producto.
