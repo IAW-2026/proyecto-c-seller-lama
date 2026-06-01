@@ -37,8 +37,8 @@ export async function POST(
 
   const { data: orden, error: ordenError } = await supabase
     .from('orden')
-    .select('orden_id, estado_pago, estado_envio, estado_general, direccion_envio')
-    .eq('orden_id', orden_id)
+    .select('orden_id, nro_orden, estado_pago, estado_envio, estado_general, direccion_envio')
+    .eq('nro_orden', orden_id)
     .single();
 
   if (ordenError || !orden) {
@@ -67,7 +67,7 @@ export async function POST(
   const { data: items } = await supabase
     .from('orden_item')
     .select('orden_id, producto:producto_id!inner (clerk_user_id)')
-    .eq('orden_id', orden_id)
+    .eq('orden_id', orden.orden_id)
     .eq('producto.clerk_user_id', userId)
     .limit(1);
 
@@ -93,7 +93,7 @@ export async function POST(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        orden_id,
+        orden_id: orden.nro_orden,
         direccion_destino: orden.direccion_envio,
         vendedor_id: userId,
       }),
@@ -133,7 +133,7 @@ export async function POST(
       codigo_seguimiento: envioData.codigo_seguimiento,
       fecha_actualizacion: new Date().toISOString(),
     })
-    .eq('orden_id', orden_id);
+    .eq('orden_id', orden.orden_id);
 
   if (updateError) {
     return jsonError('No se pudo actualizar el estado de envio', 500);
@@ -141,7 +141,7 @@ export async function POST(
 
   return NextResponse.json(
     {
-      orden_id,
+      orden_id: orden.nro_orden,
       envio_id: envioData.envio_id,
       empresa_logistica: envioData.empresa_logistica,
       codigo_seguimiento: envioData.codigo_seguimiento,

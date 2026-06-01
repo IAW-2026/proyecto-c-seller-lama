@@ -247,7 +247,7 @@ export async function POST(request: NextRequest) {
     fecha_creacion: now,
     fecha_actualizacion: now,
   })
-  .select('orden_id, estado_general, estado_pago, estado_envio, fecha_creacion')
+  .select('orden_id, nro_orden, estado_general, estado_pago, estado_envio, fecha_creacion')  
   .single();
 
   if (insertOrdenError) {
@@ -281,5 +281,14 @@ export async function POST(request: NextRequest) {
     return jsonError(updateProductosError.message, 500);
   }
 
-  return NextResponse.json(createdOrden, { status: 201 });
+  return NextResponse.json(
+  {
+    orden_id: createdOrden.nro_orden,
+    estado_general: createdOrden.estado_general,
+    estado_pago: createdOrden.estado_pago,
+    estado_envio: createdOrden.estado_envio,
+    fecha_creacion: createdOrden.fecha_creacion,
+  },
+  { status: 201 }
+);
 }

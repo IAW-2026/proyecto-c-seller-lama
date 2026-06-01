@@ -61,7 +61,7 @@ export async function GET(
 
   try {
     const response = await fetch(
-      `${shippingAppUrl}/api/envios/orden/${encodeURIComponent(orden.orden_id)}`,
+      `${shippingAppUrl}/api/envios/orden/${encodeURIComponent(orden.nro_orden)}`,
       {
         method: 'GET',
         signal: controller.signal,

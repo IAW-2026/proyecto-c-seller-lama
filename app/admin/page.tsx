@@ -52,10 +52,13 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const totalProductos = productos.total || 128;
   const totalOrdenes = ordenes.total || 56;
 
-  const calculatedIngresos = ordenes.items
-    .filter((o) => o.estado_pago === 'aprobado' || o.estado_general === 'pagada')
+  const ingresosBrutos = ordenes.items.reduce((acc, curr) => acc + curr.total, 0);
+  const ingresosCancelados = ordenes.items
+    .filter((orden) =>
+      orden.estado_envio === 'cancelado' || orden.estado_general === 'cancelada'
+    )
     .reduce((acc, curr) => acc + curr.total, 0);
-  const totalIngresos = calculatedIngresos || 2450000;
+  const totalIngresos = Math.max(ingresosBrutos - ingresosCancelados, 0);
 
   const pendingSellers = vendedores.items.filter((v) => !v.activo).length;
   const pendingOrders = ordenes.items.filter(
