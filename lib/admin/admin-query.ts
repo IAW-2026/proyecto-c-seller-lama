@@ -245,6 +245,10 @@ export const getAdminDashboardData = async (
     .select('*', { count: 'exact' })
     .order('fecha_creacion', { ascending: false });
 
+  let vendedoresStatsQuery = supabase
+    .from('vendedor')
+    .select('activo');
+
   if (filters.vendedores.search) {
     const searchTerm = `%${filters.vendedores.search}%`;
     vendedoresQuery = vendedoresQuery.or(
@@ -304,10 +308,6 @@ export const getAdminDashboardData = async (
     .from('orden')
     .select('*', { count: 'exact' })
     .order('fecha_creacion', { ascending: false });
-
-  let vendedoresStatsQuery = supabase
-    .from('vendedor')
-    .select('activo');
 
   let ordenesStatsQuery = supabase
     .from('orden')
