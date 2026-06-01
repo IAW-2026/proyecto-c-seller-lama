@@ -27,11 +27,8 @@ export default function AuthRedirectPage() {
     } else {
       if (roleAttempts < 5) {
         const timeoutId = setTimeout(async () => {
-          try {
-            await user.reload();
-          } finally {
-            setRoleAttempts((attempts) => attempts + 1);
-          }
+          void user.reload().catch(() => null);
+          setRoleAttempts((attempts) => attempts + 1);
         }, 800);
 
         return () => clearTimeout(timeoutId);
@@ -40,6 +37,23 @@ export default function AuthRedirectPage() {
       router.replace('/ventas');
     }
   }, [isLoaded, user, router, roleAttempts]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (window.location.pathname !== '/auth/redirect') return;
+
+      const roles = (user?.publicMetadata?.roles as string[]) || [];
+      if (roles.includes('super_admin')) {
+        window.location.assign('/admin');
+      } else if (user) {
+        window.location.assign('/ventas');
+      } else {
+        window.location.assign('/sign-in');
+      }
+    }, 7000);
+
+    return () => clearTimeout(timeoutId);
+  }, [user]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f6f1e7]">
