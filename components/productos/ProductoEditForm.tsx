@@ -9,6 +9,7 @@ import {
   uploadProductImages,
 } from '@/lib/supabase-products';
 import {
+  createCategoriaProductoAction,
   deleteProductoAction,
   updateProductoAction,
 } from '@/actions/productoActions';
@@ -40,6 +41,10 @@ export function ProductoEditForm({
   const router = useRouter();
   const notification = useNotification();
   const [isSaving, setIsSaving] = useState(false);
+  const [localCategorias, setLocalCategorias] = useState<Categoria[]>(categorias);
+  const [isCategoriaModalOpen, setIsCategoriaModalOpen] = useState(false);
+  const [categoriaNombre, setCategoriaNombre] = useState('');
+  const [isCreatingCategoria, setIsCreatingCategoria] = useState(false);
 
   const [existingImages, setExistingImages] = useState<string[]>(
     producto.imagenes || []
@@ -66,9 +71,65 @@ export function ProductoEditForm({
     handleChange,
     handlePriceChange,
     setErrors,
+    setFormData,
   } = useProductoForm({
     initialData: initialFormData,
   });
+
+  const openCategoriaModal = () => {
+    if (!vendedorActivo) {
+      notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
+      return;
+    }
+    setCategoriaNombre('');
+    setIsCategoriaModalOpen(true);
+  };
+
+  const closeCategoriaModal = () => {
+    setIsCategoriaModalOpen(false);
+  };
+
+  const handleCreateCategoria = async () => {
+    if (!vendedorActivo) {
+      notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
+      return;
+    }
+    const nombre = categoriaNombre.trim();
+
+    if (!nombre) {
+      notification.showError('El nombre de la categoria es obligatorio.');
+      return;
+    }
+
+    setIsCreatingCategoria(true);
+
+    try {
+      const result = await createCategoriaProductoAction(nombre);
+
+      if (!result.success || !result.data) {
+        notification.showError(result.message);
+        return;
+      }
+
+      const nuevaCategoria = result.data;
+
+      setLocalCategorias((prev) => [...prev, nuevaCategoria]);
+      setFormData((prev) => ({
+        ...prev,
+        categoria_id: nuevaCategoria.categoria_producto_id,
+      }));
+      notification.showSuccess(result.message, 3000);
+      closeCategoriaModal();
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Error al crear la categoria';
+      notification.showError(errorMessage);
+    } finally {
+      setIsCreatingCategoria(false);
+    }
+  };
 
   const handleAddImages = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -238,10 +299,11 @@ export function ProductoEditForm({
             <div className="space-y-6">
               <ProductFormFields
                 formData={formData}
-                categorias={categorias}
+                categorias={localCategorias}
                 onInputChange={handleChange}
                 onPriceChange={handlePriceChange}
                 errors={errors}
+                onCreateCategory={openCategoriaModal}
                 disabled={!vendedorActivo}
               />
 
@@ -257,6 +319,45 @@ export function ProductoEditForm({
           </div>
         </div>
       </div>
+      {isCategoriaModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-md rounded-xl border border-[#d8cfbd] bg-[#f6f1e7] p-6 shadow-xl">
+            <h2 className="text-xl font-bold text-[#37413d] mb-4">
+              Nueva categoria
+            </h2>
+
+            <label className="block text-sm font-medium text-[#37413d] mb-2">
+              Nombre de la categoria
+            </label>
+            <input
+              type="text"
+              value={categoriaNombre}
+              onChange={(event) => setCategoriaNombre(event.target.value)}
+              placeholder="Ej: Accesorios"
+              disabled={!vendedorActivo}
+              className="w-full rounded-lg border border-[#d8cfbd] bg-white px-4 py-2 text-sm text-[#37413d] outline-none focus:border-[#8fa18d]"
+            />
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeCategoriaModal}
+                className="rounded-lg border border-[#d8cfbd] bg-white px-4 py-2 text-sm font-semibold text-[#37413d] transition hover:bg-[#ede6d8]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateCategoria}
+                disabled={isCreatingCategoria || !vendedorActivo}
+                className="rounded-lg border border-[#8fa18d] bg-[#8fa18d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#7e937c] disabled:opacity-60"
+              >
+                {isCreatingCategoria ? 'Creando...' : 'Crear'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
