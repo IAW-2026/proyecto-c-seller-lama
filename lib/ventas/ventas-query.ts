@@ -176,7 +176,12 @@ const summarizeVentasStats = (ordenes: OrdenConItems[]): VentasStatsSummary => {
   );
 
   const ventasCompletas = ordenes.reduce((count, orden) => {
-    if (orden.estado_general !== ESTADO_GENERAL.COMPLETADA) return count;
+    if (
+      orden.estado_general !== ESTADO_GENERAL.COMPLETADA &&
+      orden.estado_general !== ESTADO_GENERAL.LIQUIDADA
+    ) {
+      return count;
+    }
     return count + orden.items.length;
   }, 0);
 
@@ -188,6 +193,7 @@ const summarizeVentasStats = (ordenes: OrdenConItems[]): VentasStatsSummary => {
   const ventasPendientes = ordenes.reduce((count, orden) => {
     if (
       orden.estado_general === ESTADO_GENERAL.COMPLETADA ||
+      orden.estado_general === ESTADO_GENERAL.LIQUIDADA ||
       orden.estado_general === ESTADO_GENERAL.CANCELADA
     ) {
       return count;
@@ -196,7 +202,12 @@ const summarizeVentasStats = (ordenes: OrdenConItems[]): VentasStatsSummary => {
   }, 0);
 
   const totalIngresos = ordenes.reduce((sum, orden) => {
-    if (orden.estado_general !== ESTADO_GENERAL.COMPLETADA) return sum;
+    if (
+      orden.estado_general !== ESTADO_GENERAL.COMPLETADA &&
+      orden.estado_general !== ESTADO_GENERAL.LIQUIDADA
+    ) {
+      return sum;
+    }
     const ordenTotal = orden.items.reduce(
       (ordenSum, item) => ordenSum + (item.precio_unitario || 0),
       0

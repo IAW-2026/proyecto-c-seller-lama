@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { isNonEmptyString, jsonError, parseJson } from '@/app/api/_utils';
 
@@ -47,6 +48,10 @@ export async function PATCH(
   if (!updated) {
     return jsonError('Orden no encontrada', 404);
   }
+
+  // Limpiar caché de Next.js para que el dashboard y ventas muestren el cambio en tiempo real
+  revalidatePath('/admin');
+  revalidatePath('/ventas');
 
   return NextResponse.json(
     {
