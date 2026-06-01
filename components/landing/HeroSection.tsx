@@ -29,7 +29,7 @@ export function HeroSection() {
 
           {/* Main title */}
           <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white leading-[0.95] tracking-tight mb-8 animate-[fadeInUp_0.6s_ease-out_0.1s_both]">
-            Vendé moda
+            Vende moda
             <br />
             <span className="text-[#8fa18d]">con historia</span>
           </h1>
