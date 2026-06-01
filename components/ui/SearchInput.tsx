@@ -3,6 +3,10 @@ interface SearchInputProps {
   label: string;
   placeholder?: string;
   defaultValue?: string;
+  /** Controlled value — when set, the input becomes controlled */
+  value?: string;
+  /** Change handler for controlled mode */
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function SearchInput({
@@ -10,16 +14,22 @@ export function SearchInput({
   label,
   placeholder,
   defaultValue,
+  value,
+  onChange,
 }: SearchInputProps) {
+  const isControlled = value !== undefined;
+
   return (
     <label className="flex flex-col gap-2 text-sm font-semibold text-[#37413d]">
       <span>{label}</span>
 
       <input
-        key={(defaultValue as string) || 'empty'}
+        key={isControlled ? undefined : (defaultValue as string) || 'empty'}
         type="text"
         name={name}
-        defaultValue={defaultValue}
+        {...(isControlled
+          ? { value, onChange }
+          : { defaultValue })}
         placeholder={placeholder}
         className="
           h-12 w-full rounded-xl border border-[#d8cfbd]

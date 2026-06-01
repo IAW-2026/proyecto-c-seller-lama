@@ -7,6 +7,7 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterSelect } from '@/components/ui/FilterSelect';
 import type { AdminDashboardFilters } from '@/types/admin-filters';
 import { buildAdminQueryString } from '@/lib/admin/admin-query';
+import { useAdminSearch } from '@/hooks/useAdminSearch';
 
 interface FilterOption {
   label: string;
@@ -25,6 +26,8 @@ export function ProductosFilters({
   vendedorOptions,
 }: ProductosFiltersProps) {
   const router = useRouter();
+  const { searchValue, handleChange } = useAdminSearch('productos', filters);
+
   const clearHref = buildAdminQueryString({
     ...filters,
     productos: { page: 1, pageSize: filters.productos.pageSize },
@@ -34,6 +37,12 @@ export function ProductosFilters({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const params = new URLSearchParams();
+
+    // Include the current search value
+    if (searchValue.trim()) {
+      params.set('productos_search', searchValue.trim());
+    }
+
     formData.forEach((value, key) => {
       if (value) params.set(key, value.toString());
     });
@@ -76,7 +85,8 @@ export function ProductosFilters({
             name="productos_search"
             label="Búsqueda"
             placeholder="Buscar por título de producto"
-            defaultValue={filters.productos.search}
+            value={searchValue}
+            onChange={handleChange}
           />
 
           <FilterSelect

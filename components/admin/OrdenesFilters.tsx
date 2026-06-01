@@ -7,6 +7,7 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { FilterSelect } from '@/components/ui/FilterSelect';
 import type { AdminDashboardFilters } from '@/types/admin-filters';
 import { buildAdminQueryString } from '@/lib/admin/admin-query';
+import { useAdminSearch } from '@/hooks/useAdminSearch';
 
 interface FilterOption {
   label: string;
@@ -27,6 +28,8 @@ export function OrdenesFilters({
   estadoEnvioOptions,
 }: OrdenesFiltersProps) {
   const router = useRouter();
+  const { searchValue, handleChange } = useAdminSearch('ordenes', filters);
+
   const clearHref = buildAdminQueryString({
     ...filters,
     ordenes: { page: 1, pageSize: filters.ordenes.pageSize },
@@ -36,6 +39,12 @@ export function OrdenesFilters({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const params = new URLSearchParams();
+
+    // Include the current search value
+    if (searchValue.trim()) {
+      params.set('ordenes_search', searchValue.trim());
+    }
+
     formData.forEach((value, key) => {
       if (value) params.set(key, value.toString());
     });
@@ -75,7 +84,8 @@ export function OrdenesFilters({
             name="ordenes_search"
             label="Búsqueda"
             placeholder="Buscar por nro de orden"
-            defaultValue={filters.ordenes.search}
+            value={searchValue}
+            onChange={handleChange}
           />
 
           <FilterSelect
