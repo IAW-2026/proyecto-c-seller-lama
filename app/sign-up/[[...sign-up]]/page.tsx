@@ -40,6 +40,7 @@ export default function SignUpPage() {
                   colorBackground: "#f6f1e7",
                 },
               }}
+              signInUrl="/sign-in"
               fallbackRedirectUrl="/auth/redirect"
               forceRedirectUrl="/auth/redirect"
             />
