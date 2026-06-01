@@ -54,7 +54,6 @@ export interface Orden {
   estado_general: EstadoGeneral;
   estado_pago: EstadoPago;
   estado_envio: EstadoEnvio;
-  estado_liquidacion_vendedor: 'pendiente' | 'pagada';
   direccion_envio: string;
   motivo: string | null;
   codigo_seguimiento: string | null;
