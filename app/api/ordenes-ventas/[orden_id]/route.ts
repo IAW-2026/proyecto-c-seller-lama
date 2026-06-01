@@ -2,13 +2,16 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 
+type ProductoOrdenRecord = {
+  clerk_user_id: string;
+  titulo?: string | null;
+  imagenes?: string[] | null;
+};
+
 type OrdenItemRecord = {
   producto_id: string;
   precio_unitario: number;
-  producto?: {
-    clerk_user_id: string;
-    titulo?: string | null;
-  } | { clerk_user_id: string; titulo?: string | null }[] | null;
+  producto?: ProductoOrdenRecord | ProductoOrdenRecord[] | null;
 };
 
 type OrdenRecord = {
@@ -39,7 +42,8 @@ const ordenDetailSelect = `
     precio_unitario,
     producto (
       clerk_user_id,
-      titulo
+      titulo,
+      imagenes
     )
   )
 `;
@@ -59,14 +63,13 @@ const mapOrdenResponse = (orden: OrdenRecord) => {
 
   const items = (orden.orden_item || []).map((item) => {
     const producto = item.producto;
-    const titulo = Array.isArray(producto)
-      ? producto[0]?.titulo ?? null
-      : producto?.titulo ?? null;
+    const productoData = Array.isArray(producto) ? producto[0] : producto;
 
     return {
       producto_id: item.producto_id,
       precio_unitario: item.precio_unitario,
-      titulo,
+      titulo: productoData?.titulo ?? null,
+      imagenes: productoData?.imagenes ?? [],
     };
   });
 
