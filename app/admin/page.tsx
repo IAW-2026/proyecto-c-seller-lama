@@ -28,7 +28,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   await requireSuperAdmin();
 
   const params = await searchParams;
-  const { vendedores, productos, ordenes, filters } =
+  const { vendedores, productos, ordenes, stats, filters } =
     await getAdminDashboardData(params);
 
   const estadoPublicacionOptions = getEstadoPublicacionOptions();
@@ -52,19 +52,11 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const totalProductos = productos.total || 128;
   const totalOrdenes = ordenes.total || 56;
 
-  const ingresosBrutos = ordenes.items.reduce((acc, curr) => acc + curr.total, 0);
-  const ingresosCancelados = ordenes.items
-    .filter((orden) =>
-      orden.estado_envio === 'cancelado' || orden.estado_general === 'cancelada'
-    )
-    .reduce((acc, curr) => acc + curr.total, 0);
-  const totalIngresos = Math.max(ingresosBrutos - ingresosCancelados, 0);
-
-  const pendingSellers = vendedores.items.filter((v) => !v.activo).length;
-  const pendingOrders = ordenes.items.filter(
-    (o) => o.estado_general === 'pendiente_pago' || o.estado_general === 'en_preparacion'
-  ).length;
-  const totalPendientes = pendingSellers + pendingOrders || 8;
+  const totalIngresos = Math.max(
+    stats.ingresosBrutos - stats.ingresosCancelados,
+    0
+  );
+  const totalPendientes = stats.pendingSellers + stats.pendingOrders;
 
   return (
     <main className="flex-1 bg-gradient-to-b from-[#f6f1e7] via-[#f6f1e7] to-[#ede6d8]/40 relative overflow-hidden">

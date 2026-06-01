@@ -250,10 +250,17 @@ export const getAdminDashboardData = async (
     vendedoresQuery = vendedoresQuery.or(
       `nombre_vendedor.ilike.${searchTerm},email.ilike.${searchTerm}`
     );
+    vendedoresStatsQuery = vendedoresStatsQuery.or(
+      `nombre_vendedor.ilike.${searchTerm},email.ilike.${searchTerm}`
+    );
   }
 
   if (filters.vendedores.activo) {
     vendedoresQuery = vendedoresQuery.eq(
+      'activo',
+      filters.vendedores.activo === 'activa'
+    );
+    vendedoresStatsQuery = vendedoresStatsQuery.eq(
       'activo',
       filters.vendedores.activo === 'activa'
     );
@@ -298,32 +305,63 @@ export const getAdminDashboardData = async (
     .select('*', { count: 'exact' })
     .order('fecha_creacion', { ascending: false });
 
+  let vendedoresStatsQuery = supabase
+    .from('vendedor')
+    .select('activo');
+
+  let ordenesStatsQuery = supabase
+    .from('orden')
+    .select('total, estado_envio, estado_general');
+
   if (filters.ordenes.search) {
     const searchTerm = `%${filters.ordenes.search}%`;
     ordenesQuery = ordenesQuery.ilike('nro_orden', searchTerm);
+    ordenesStatsQuery = ordenesStatsQuery.ilike('nro_orden', searchTerm);
   }
 
   if (filters.ordenes.estado_pago) {
     ordenesQuery = ordenesQuery.eq('estado_pago', filters.ordenes.estado_pago);
+    ordenesStatsQuery = ordenesStatsQuery.eq('estado_pago', filters.ordenes.estado_pago);
   }
 
   if (filters.ordenes.estado_envio) {
     ordenesQuery = ordenesQuery.eq('estado_envio', filters.ordenes.estado_envio);
+    ordenesStatsQuery = ordenesStatsQuery.eq('estado_envio', filters.ordenes.estado_envio);
   }
 
   if (filters.ordenes.estado_general) {
     ordenesQuery = ordenesQuery.eq('estado_general', filters.ordenes.estado_general);
+    ordenesStatsQuery = ordenesStatsQuery.eq('estado_general', filters.ordenes.estado_general);
   }
 
   const [
     { data: vendedores, count: vendedoresCount },
     { data: productos, count: productosCount },
     { data: ordenes, count: ordenesCount },
+    { data: vendedoresStats },
+    { data: ordenesStats },
   ] = await Promise.all([
     vendedoresQuery.range(vendedoresFrom, vendedoresTo),
     productosQuery.range(productosFrom, productosTo),
     ordenesQuery.range(ordenesFrom, ordenesTo),
+    vendedoresStatsQuery,
+    ordenesStatsQuery,
   ]);
+
+  const pendingSellers = (vendedoresStats || []).filter((v) => !v.activo).length;
+  const pendingOrders = (ordenesStats || []).filter(
+    (orden) => orden.estado_general === 'pendiente_pago' || orden.estado_general === 'en_preparacion'
+  ).length;
+  const ingresosBrutos = (ordenesStats || []).reduce(
+    (acc, orden) => acc + (orden.total || 0),
+    0
+  );
+  const ingresosCancelados = (ordenesStats || []).reduce((acc, orden) => {
+    if (orden.estado_envio === 'cancelado' || orden.estado_general === 'cancelada') {
+      return acc + (orden.total || 0);
+    }
+    return acc;
+  }, 0);
 
   return {
     vendedores: toPagedResult<Vendedor>(
@@ -344,6 +382,12 @@ export const getAdminDashboardData = async (
       filters.ordenes.page,
       filters.ordenes.pageSize
     ),
+    stats: {
+      ingresosBrutos,
+      ingresosCancelados,
+      pendingSellers,
+      pendingOrders,
+    },
     filters,
   };
 };

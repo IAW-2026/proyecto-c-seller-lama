@@ -64,5 +64,11 @@ export interface AdminDashboardResult {
   vendedores: AdminPagedResult<Vendedor>;
   productos: AdminPagedResult<ProductoConVendedor>;
   ordenes: AdminPagedResult<Orden>;
+  stats: {
+    ingresosBrutos: number;
+    ingresosCancelados: number;
+    pendingSellers: number;
+    pendingOrders: number;
+  };
   filters: AdminDashboardFilters;
 }
