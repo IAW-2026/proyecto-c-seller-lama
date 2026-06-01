@@ -5,6 +5,7 @@ export const ESTADO_GENERAL_VALUES = [
   'enviada',
   'completada',
   'cancelada',
+  'liquidada',
 ] as const;
 
 export const ESTADO_GENERAL = {
@@ -14,6 +15,7 @@ export const ESTADO_GENERAL = {
   ENVIADA: 'enviada',
   COMPLETADA: 'completada',
   CANCELADA: 'cancelada',
+  LIQUIDADA: 'liquidada',
 } as const;
 
 export const ESTADO_PAGO_VALUES = ['pendiente', 'aprobado', 'rechazado'] as const;

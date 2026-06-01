@@ -174,6 +174,7 @@ export const getEstadoGeneralOptions = () => [
   { label: 'Enviada', value: 'enviada' },
   { label: 'Completada', value: 'completada' },
   { label: 'Cancelada', value: 'cancelada' },
+  { label: 'Liquidada', value: 'liquidada' },
 ];
 
 export const getVendedorActivoOptions = () => [

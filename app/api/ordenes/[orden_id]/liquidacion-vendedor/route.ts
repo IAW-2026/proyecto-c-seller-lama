@@ -29,6 +29,7 @@ export async function PATCH(
     .from('orden')
     .update({
       estado_liquidacion_vendedor: 'pagada',
+      estado_general: 'liquidada',
       fecha_liquidacion_vendedor: fechaActualizacion,
       fecha_actualizacion: fechaActualizacion,
     })

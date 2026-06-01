@@ -19,6 +19,7 @@ type StatusType =
   | 'enviada'
   | 'completada'
   | 'cancelada'
+  | 'liquidada'
   | 'despachado'
   | 'entregado'
   | null
@@ -128,6 +129,12 @@ const statusConfig: Record<
     text: 'text-emerald-700',
     dot: 'bg-emerald-500',
     label: 'Entregado',
+  },
+  liquidada: {
+    bg: 'bg-purple-50',
+    text: 'text-purple-700',
+    dot: 'bg-purple-500',
+    label: 'Liquidada',
   },
 };
 

@@ -166,6 +166,7 @@ export const getEstadoGeneralOptions = () => [
   { label: 'Enviada', value: 'enviada' },
   { label: 'Completada', value: 'completada' },
   { label: 'Cancelada', value: 'cancelada' },
+  { label: 'Liquidada', value: 'liquidada' },
 ];
 
 const summarizeVentasStats = (ordenes: OrdenConItems[]): VentasStatsSummary => {
