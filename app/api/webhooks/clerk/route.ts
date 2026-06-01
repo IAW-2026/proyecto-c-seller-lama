@@ -17,6 +17,7 @@ type ClerkUserCreatedEvent = {
 
 export const runtime = 'nodejs';
 
+/*Endpoint para manejar webhooks de Clerk, específicamente para la creación de usuarios y asignarles el rol de vendedor */
 export async function POST(req: Request) {
   const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
 

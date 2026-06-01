@@ -72,6 +72,7 @@ const getVendedoresForProductos = async (
   return data as Vendedor[];
 };
 
+/*Endpoint para listar productos con filtros de búsqueda, categoría, talle, género y ordenamiento */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
 

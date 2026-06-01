@@ -15,6 +15,7 @@ const normalizeString = (value: string | null) => {
   return trimmed ? trimmed : undefined;
 };
 
+/*Endpoint para listar vendedores con filtros de búsqueda y paginación */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
 

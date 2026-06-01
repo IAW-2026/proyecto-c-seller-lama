@@ -60,10 +60,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   return (
     <main className="flex-1 bg-gradient-to-b from-[#f6f1e7] via-[#f6f1e7] to-[#ede6d8]/40 relative overflow-hidden">
-      {/* Spacer for fixed navbar (compact: 56px) */}
       <div className="h-14 md:h-[56px]" />
 
-      {/* Subtle ambient glows */}
       <div className="absolute top-20 -left-32 w-80 h-80 bg-[#8fa18d]/[0.07] rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute top-40 right-0 w-64 h-64 bg-[#8fa18d]/[0.05] rounded-full blur-[80px] pointer-events-none" />
       <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-[#d8cfbd]/[0.12] rounded-full blur-[120px] pointer-events-none" />
@@ -87,7 +85,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
               </p>
             </div>
             
-            {/* dashboard detail */}
             <div className="hidden lg:flex items-center gap-3 bg-white/40 backdrop-blur-sm border border-[#d8cfbd]/50 rounded-2xl p-4 shadow-sm">
               <div className="w-10 h-10 rounded-xl bg-[#8fa18d]/10 flex items-center justify-center text-[#8fa18d]">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

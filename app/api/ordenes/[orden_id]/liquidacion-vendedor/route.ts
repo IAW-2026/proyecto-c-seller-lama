@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { isNonEmptyString, jsonError, parseJson } from '@/app/api/_utils';
 
@@ -7,6 +6,7 @@ type LiquidacionInput = {
   fecha_actualizacion?: string;
 };
 
+/*Endpoint para registrar la liquidación de una orden por parte del vendedor */
 export async function PATCH(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
@@ -48,10 +48,6 @@ export async function PATCH(
   if (!updated) {
     return jsonError('Orden no encontrada', 404);
   }
-
-  // Limpiar caché de Next.js para que el dashboard y ventas muestren el cambio en tiempo real
-  revalidatePath('/admin');
-  revalidatePath('/ventas');
 
   return NextResponse.json(
     {

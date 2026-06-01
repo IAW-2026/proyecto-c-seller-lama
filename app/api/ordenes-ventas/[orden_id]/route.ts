@@ -89,6 +89,7 @@ const mapOrdenResponse = (orden: OrdenRecord) => {
   };
 };
 
+/*Endpoint para obtener los detalles de una orden de venta */
 export async function GET(
   _request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }

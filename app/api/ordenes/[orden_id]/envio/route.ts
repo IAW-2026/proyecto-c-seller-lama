@@ -5,6 +5,7 @@ import { getVendedorActivoOrError } from '@/lib/vendedor-status';
 import { supabase } from '@/lib/supabase';
 import type { EnvioDetalle } from '@/types/envio';
 
+/*Endpoint para obtener los detalles de un envio */
 export async function GET(
   _request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }

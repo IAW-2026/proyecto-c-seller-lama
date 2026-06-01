@@ -33,7 +33,6 @@ export default async function ProductoDetallePage({ params, searchParams }: Prop
   const query = searchParams ? await searchParams : undefined;
   const returnPath = query?.from === 'admin' ? '/admin' : '/productos';
 
-  // Traer un producto específico de Supabase
   const { data: producto, error } = await supabase
     .from('producto')
     .select(
@@ -46,9 +45,8 @@ export default async function ProductoDetallePage({ params, searchParams }: Prop
     )
     .eq('producto_id', producto_id)
     .eq('clerk_user_id', userId)
-    .single(); // .single() porque solo espera 1 resultado
+    .single(); 
 
-  // Traer todas las categorías
   const { data: categorias, error: categoriasError } = await supabase
     .from('categoria_producto')
     .select('categoria_producto_id, nombre')
@@ -73,7 +71,6 @@ export default async function ProductoDetallePage({ params, searchParams }: Prop
     );
   }
 
-  // Agregar categoria_nombre para compatibilidad con ProductoEditForm
   const productoConCategoria = {
     ...producto,
     categoria_nombre: producto.categoria_producto?.nombre || 'Sin categoría',

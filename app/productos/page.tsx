@@ -54,17 +54,14 @@ export default async function ProductosPage({
 
   return (
     <main className="flex-1 bg-gradient-to-b from-[#f6f1e7] via-[#f6f1e7] to-[#ede6d8]/40 relative overflow-hidden">
-      {/* Spacer for fixed navbar (compact: 56px) */}
       <div className="h-14 md:h-[56px]" />
 
-      {/* Subtle ambient glows */}
       <div className="absolute top-20 -left-32 w-80 h-80 bg-[#8fa18d]/[0.07] rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute top-40 right-0 w-64 h-64 bg-[#8fa18d]/[0.05] rounded-full blur-[80px] pointer-events-none" />
       <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-[#d8cfbd]/[0.12] rounded-full blur-[120px] pointer-events-none" />
 
       <PageContainer>
         <div className="relative py-7 md:py-9">
-          {/* Page Header — premium, matching Ventas */}
           <div className="mb-7 md:mb-8">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
               <div className="flex-1">

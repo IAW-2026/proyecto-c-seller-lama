@@ -36,7 +36,6 @@ export function VendedoresFilters({
     const formData = new FormData(e.currentTarget);
     const params = new URLSearchParams();
 
-    // Include the current search value
     if (searchValue.trim()) {
       params.set('vendedores_search', searchValue.trim());
     }

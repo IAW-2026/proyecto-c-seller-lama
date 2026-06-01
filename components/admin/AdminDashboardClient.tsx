@@ -151,7 +151,6 @@ export function AdminDashboardClient({
               animation: `cardReveal 0.5s ease-out ${index * 0.07}s both`,
             }}
           >
-            {/* Subtle warm inner glow for featured card */}
             {card.featured && (
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[#8fa18d]/[0.04] blur-3xl pointer-events-none" />
             )}
@@ -176,7 +175,6 @@ export function AdminDashboardClient({
               {card.label}
             </p>
 
-            {/* Value — large, bold protagonist */}
             <p
               className={`
                 font-bold leading-none text-[#37413d] mb-3

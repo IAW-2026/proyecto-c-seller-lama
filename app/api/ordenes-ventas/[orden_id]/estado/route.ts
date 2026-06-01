@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 
+/*Endpoint para obtener el estado de una orden de venta */
 export async function GET(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }

@@ -12,6 +12,7 @@ type ShippingResponse = {
   estado: string;
 };
 
+/*Endpoint para despachar una orden */
 export async function POST(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }

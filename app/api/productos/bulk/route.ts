@@ -16,6 +16,7 @@ const mapProductoResponse = (producto: Producto) => ({
   vendedor_id: producto.clerk_user_id,
 });
 
+/*Endpoint para obtener los detalles de múltiples productos por sus IDs */
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const ids = parseIds(searchParams.get('ids'));
