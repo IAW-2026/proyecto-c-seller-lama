@@ -93,7 +93,8 @@ export async function createProductoAction(
   });
 
   if (error) {
-    return { success: false, message: `Error al crear producto: ${error.message}` };
+    console.error('Error al crear producto', error);
+    return { success: false, message: 'No se pudo crear el producto. Intenta nuevamente.' };
   }
 
   revalidatePath('/productos');
@@ -148,7 +149,8 @@ export async function updateProductoAction(
     .eq('producto_id', productoId);
 
   if (error) {
-    return { success: false, message: `Error al actualizar el producto: ${error.message}` };
+    console.error('Error al actualizar producto', error);
+    return { success: false, message: 'No se pudo actualizar el producto. Intenta nuevamente.' };
   }
 
   revalidatePath('/productos');
@@ -202,7 +204,8 @@ export async function deleteProductoAction(productoId: string): Promise<ActionRe
       .remove(filePaths);
 
     if (storageError) {
-      return { success: false, message: `Error al eliminar imágenes: ${storageError.message}` };
+      console.error('Error al eliminar imagenes de producto', storageError);
+      return { success: false, message: 'No se pudieron eliminar las imagenes del producto.' };
     }
   }
 
@@ -212,7 +215,8 @@ export async function deleteProductoAction(productoId: string): Promise<ActionRe
     .eq('producto_id', productoId);
 
   if (error) {
-    return { success: false, message: `Error al eliminar el producto: ${error.message}` };
+    console.error('Error al eliminar producto', error);
+    return { success: false, message: 'No se pudo eliminar el producto. Intenta nuevamente.' };
   }
 
   revalidatePath('/productos');
@@ -244,6 +248,7 @@ export async function createCategoriaProductoAction(
     .single();
 
   if (error) {
+    console.error('Error al crear categoria de producto', error);
     return {
       success: false,
       message: 'Error al crear la categoría.',

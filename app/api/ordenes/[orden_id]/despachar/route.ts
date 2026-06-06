@@ -1,9 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
 import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
-import { getUserRolesById, isVendedor } from '@/lib/auth/roles';
+import { requireVendedor } from '@/lib/api-auth';
 import { getVendedorActivoOrError } from '@/lib/vendedor-status';
 
 type ShippingResponse = {
@@ -18,18 +17,10 @@ export async function POST(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
-  const { userId } = await auth();
+  const authResult = await requireVendedor();
+  if (!authResult.ok) return authResult.response;
 
-  if (!userId) {
-    return jsonError('No autenticado', 401);
-  }
-
-  const roles = await getUserRolesById(userId);
-
-  if (!isVendedor(roles)) {
-    return jsonError('No autorizado para operar como vendedor', 403);
-  }
-
+  const { userId } = authResult;
   const status = await getVendedorActivoOrError(userId);
 
   if (!status.activo) {

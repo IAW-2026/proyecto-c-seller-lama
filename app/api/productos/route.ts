@@ -4,13 +4,19 @@ import type { Producto, Vendedor } from '@/types';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 
 const DEFAULT_PAGE_SIZE = 12;
+const MAX_PAGE_SIZE = 50;
 const SORT_RECENT = 'recent';
 const SORT_PRICE_ASC = 'price_asc';
 const SORT_PRICE_DESC = 'price_desc';
 
-const parsePositiveInt = (value: string | null, fallback: number) => {
+const parsePositiveInt = (
+  value: string | null,
+  fallback: number,
+  max?: number
+) => {
   const parsed = Number.parseInt(value || '', 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return max ? Math.min(parsed, max) : parsed;
 };
 
 const normalizeString = (value: string | null) => {
@@ -84,7 +90,8 @@ export async function GET(request: NextRequest) {
   const page = parsePositiveInt(searchParams.get('page'), 1);
   const pageSize = parsePositiveInt(
     searchParams.get('pageSize'),
-    DEFAULT_PAGE_SIZE
+    DEFAULT_PAGE_SIZE,
+    MAX_PAGE_SIZE
   );
 
   let query = supabase
@@ -122,7 +129,8 @@ export async function GET(request: NextRequest) {
   const { data, error, count } = await query.range(from, to);
 
   if (error) {
-    return jsonError(error.message, 500);
+    console.error('Error al listar productos publicos', error);
+    return jsonError('No se pudieron obtener los productos', 500);
   }
 
   const productos = (data || []) as Producto[];

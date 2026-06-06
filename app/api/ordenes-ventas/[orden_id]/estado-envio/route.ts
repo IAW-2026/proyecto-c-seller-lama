@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireInternalApiKey } from '@/lib/api-auth';
 import { ESTADO_ENVIO, ESTADO_GENERAL } from '@/types/orden';
 import { isEstadoEnvio, isNonEmptyString, jsonError, parseJson, type EstadoEnvio } from '@/app/api/_utils';
 
@@ -14,6 +15,9 @@ type EstadoEnvioInput = {
 Endpoint para actualizar el estado de envío de una orden de venta específica por su ID.
 */
 export async function PATCH(request: NextRequest, props: { params: Promise<{ orden_id: string }> }) {
+  const authError = requireInternalApiKey(request);
+  if (authError) return authError;
+
   const params = await props.params;
   const { orden_id } = params;
 
@@ -48,7 +52,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
     .select('nro_orden, estado_general, estado_envio, fecha_actualizacion');
 
   if (updateError) {
-    return jsonError(updateError.message, 500);
+    console.error('Error al actualizar estado de envio', updateError);
+    return jsonError('No se pudo actualizar el estado de envio', 500);
   }
 
   const first = updated?.[0];

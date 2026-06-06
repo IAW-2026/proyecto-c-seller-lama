@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import type { OrdenConItems } from '@/types';
+import { requireInternalApiKey } from '@/lib/api-auth';
 import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, isNumber, jsonError, parseJson } from '@/app/api/_utils';
 
@@ -74,21 +74,6 @@ const isValidItem = (value: OrdenItemInput) =>
   isNumber(value.precio_unitario) &&
   value.precio_unitario >= 0;
 
-const ordenSelect = `
-  *,
-  orden_item (
-    orden_item_id,
-    orden_id,
-    producto_id,
-    precio_unitario,
-    fecha_creacion,
-    producto:producto_id (
-      titulo,
-      clerk_user_id
-    )
-  )
-`;
-
 const ordenListSelect = `
   nro_orden,
   clerk_user_id,
@@ -109,6 +94,9 @@ const ordenListSelect = `
 Endpoint para listar ordenes de venta de un comprador
 */
 export async function GET(request: NextRequest) {
+  const authError = requireInternalApiKey(request);
+  if (authError) return authError;
+
   const { searchParams } = request.nextUrl;
   const comprador_id = searchParams.get('comprador_id');
 
@@ -132,7 +120,8 @@ export async function GET(request: NextRequest) {
     .range(from, to);
 
   if (error) {
-    return jsonError(error.message, 500);
+    console.error('Error al listar ordenes de comprador', error);
+    return jsonError('No se pudieron obtener las ordenes', 500);
   }
 
   const items = (data || []).map((orden) =>
@@ -154,6 +143,9 @@ export async function GET(request: NextRequest) {
 Endpoint para crear una nueva orden de venta 
 */
 export async function POST(request: NextRequest) {
+  const authError = requireInternalApiKey(request);
+  if (authError) return authError;
+
   const { data, error } = await parseJson<OrdenCreateInput>(request);
 
   if (error) return error;
@@ -200,7 +192,8 @@ export async function POST(request: NextRequest) {
     .in('producto_id', productIds);
 
   if (productosError) {
-    return jsonError(productosError.message, 500);
+    console.error('Error al consultar productos para orden', productosError);
+    return jsonError('No se pudo validar la orden', 500);
   }
 
   const productosEncontrados = (productos || []) as ProductoOrden[];
@@ -232,8 +225,6 @@ export async function POST(request: NextRequest) {
   }
 
   const now = new Date().toISOString();
-  const vendedorId = productosEncontrados[0]?.clerk_user_id;
-
   const { data: createdOrden, error: insertOrdenError } = await supabase
   .from('orden')
   .insert({
@@ -251,7 +242,8 @@ export async function POST(request: NextRequest) {
   .single();
 
   if (insertOrdenError) {
-    return jsonError(insertOrdenError.message, 500);
+    console.error('Error al crear orden', insertOrdenError);
+    return jsonError('No se pudo crear la orden', 500);
   }
 
   const ordenItems = items.map((item) => ({
@@ -267,7 +259,8 @@ export async function POST(request: NextRequest) {
 
   if (insertItemsError) {
     await supabase.from('orden').delete().eq('orden_id', createdOrden.orden_id);
-    return jsonError(insertItemsError.message, 500);
+    console.error('Error al crear items de orden', insertItemsError);
+    return jsonError('No se pudo crear la orden', 500);
   }
 
   const { error: updateProductosError } = await supabase
@@ -278,7 +271,8 @@ export async function POST(request: NextRequest) {
   if (updateProductosError) {
     await supabase.from('orden_item').delete().eq('orden_id', createdOrden.orden_id);
     await supabase.from('orden').delete().eq('orden_id', createdOrden.orden_id);
-    return jsonError(updateProductosError.message, 500);
+    console.error('Error al marcar productos como vendidos', updateProductosError);
+    return jsonError('No se pudo crear la orden', 500);
   }
 
   return NextResponse.json(

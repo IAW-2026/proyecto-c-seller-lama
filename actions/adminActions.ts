@@ -41,6 +41,8 @@ type UpdateProductoPayload = {
 };
 
 export async function deleteProducto(productoId: string): Promise<ActionResult> {
+  await requireSuperAdmin();
+
   const { data: ordenesAsociadas } = await supabase
     .from('orden_item')
     .select('orden_id, orden:orden_id (nro_orden)')
@@ -77,6 +79,8 @@ export async function deleteProducto(productoId: string): Promise<ActionResult> 
 }
 
 export async function deleteOrden(ordenId: string): Promise<ActionResult> {
+  await requireSuperAdmin();
+
   const { error: itemsError } = await supabase
     .from('orden_item')
     .delete()
@@ -110,6 +114,8 @@ export async function deleteOrden(ordenId: string): Promise<ActionResult> {
 }
 
 export async function deleteVendedor(clerkUserId: string): Promise<ActionResult> {
+  await requireSuperAdmin();
+
   const { error: productosError } = await supabase
     .from('producto')
     .update({ estado_publicacion: 'inactiva' })
@@ -144,6 +150,8 @@ export async function deleteVendedor(clerkUserId: string): Promise<ActionResult>
 }
 
 export async function activateVendedor(clerkUserId: string): Promise<ActionResult> {
+  await requireSuperAdmin();
+
   const { error } = await supabase
     .from('vendedor')
     .update({ activo: true })
@@ -167,6 +175,8 @@ export async function activateVendedor(clerkUserId: string): Promise<ActionResul
 export async function updateVendedor(
   payload: UpdateVendedorPayload
 ): Promise<ActionResult> {
+  await requireSuperAdmin();
+
   const { error } = await supabase
     .from('vendedor')
     .update({
@@ -239,6 +249,8 @@ export async function updateProductoAdmin(
 export async function updateOrden(
   payload: UpdateOrdenPayload
 ): Promise<ActionResult> {
+  await requireSuperAdmin();
+
   const { error } = await supabase
     .from('orden')
     .update({

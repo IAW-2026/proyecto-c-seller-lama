@@ -36,7 +36,8 @@ export async function GET(request: NextRequest) {
     .eq('estado_publicacion', 'activa');
 
   if (error) {
-    return jsonError(error.message, 500);
+    console.error('Error al obtener productos bulk publicos', error);
+    return jsonError('No se pudieron obtener los productos', 500);
   }
 
   const productos = (data || []) as Producto[];

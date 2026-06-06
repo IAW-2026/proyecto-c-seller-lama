@@ -1,16 +1,11 @@
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jsonError } from '@/lib/api-auth';
 
 /*
 Sirve para no repetir validaciones y respuestas en todos los route handlers.
 */
 
-type JsonError = {
-  error: string;
-};
-
-export const jsonError = (message: string, status = 400) =>
-  NextResponse.json({ error: message } satisfies JsonError, { status });
+export { jsonError };
 
 export const parseJson = async <T>(request: NextRequest) => {
   try {

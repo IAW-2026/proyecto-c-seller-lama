@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireInternalApiKey } from '@/lib/api-auth';
 import { isNonEmptyString, jsonError, parseJson } from '@/app/api/_utils';
 
 type LiquidacionInput = {
@@ -11,6 +12,9 @@ export async function PATCH(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
+  const authError = requireInternalApiKey(request);
+  if (authError) return authError;
+
   const params = await props.params;
   const { orden_id } = params;
 
@@ -42,7 +46,8 @@ export async function PATCH(
   }
 
   if (updateError) {
-    return jsonError(updateError.message, 500);
+    console.error('Error al registrar liquidacion de vendedor', updateError);
+    return jsonError('No se pudo registrar la liquidacion', 500);
   }
 
   if (!updated) {

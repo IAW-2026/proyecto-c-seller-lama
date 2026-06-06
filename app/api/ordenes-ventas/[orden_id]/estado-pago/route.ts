@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireInternalApiKey } from '@/lib/api-auth';
 import {
   isEstadoPago,
   isNonEmptyString,
@@ -21,6 +22,9 @@ export async function PATCH(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
+  const authError = requireInternalApiKey(request);
+  if (authError) return authError;
+
   const params = await props.params;
   const { orden_id } = params;
 
@@ -53,7 +57,8 @@ export async function PATCH(
     .select('nro_orden, estado_pago, estado_general, fecha_actualizacion');
 
   if (updateError) {
-    return jsonError(updateError.message, 500);
+    console.error('Error al actualizar estado de pago', updateError);
+    return jsonError('No se pudo actualizar el estado de pago', 500);
   }
 
   const first = updated?.[0];

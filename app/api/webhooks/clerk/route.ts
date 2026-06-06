@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       'svix-timestamp': svixTimestamp,
       'svix-signature': svixSignature,
     }) as ClerkUserCreatedEvent;
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Firma del webhook invalida' },
       { status: 401 }
@@ -69,7 +69,6 @@ export async function POST(req: Request) {
   const firstName = event.data.first_name ?? '';
   const lastName = event.data.last_name ?? '';
   const nombreVendedor = `${firstName} ${lastName}`.trim() || email || 'Sin nombre';
-  const fechaCreacion = new Date(event.data.created_at).toISOString();
 
   if (!email) {
     return NextResponse.json(
@@ -87,13 +86,14 @@ export async function POST(req: Request) {
       },
     });
   } catch (error) {
+    console.error('Error al asignar rol vendedor en Clerk', error);
     return NextResponse.json(
       { error: 'No se pudo asignar el rol vendedor' },
       { status: 500 }
     );
   }
 
-  const { data, error } = await supabaseAdmin
+  const { error } = await supabaseAdmin
     .from('vendedor')
     .upsert(
       {
@@ -107,11 +107,9 @@ export async function POST(req: Request) {
     );
 
   if (error) {
+    console.error('Error al crear vendedor desde webhook Clerk', error);
     return NextResponse.json(
-      {
-        error: error.message,
-        details: error,
-      },
+      { error: 'No se pudo crear el vendedor' },
       { status: 500 }
     );
   }

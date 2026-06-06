@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireInternalApiKey } from '@/lib/api-auth';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 
 type ProductoOrdenRecord = {
@@ -91,9 +92,12 @@ const mapOrdenResponse = (orden: OrdenRecord) => {
 
 /*Endpoint para obtener los detalles de una orden de venta */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
+  const authError = requireInternalApiKey(request);
+  if (authError) return authError;
+
   const params = await props.params;
   const { orden_id } = params;
 
@@ -108,7 +112,8 @@ export async function GET(
     .maybeSingle();
 
   if (error) {
-    return jsonError(error.message, 500);
+    console.error('Error al obtener detalle de orden', error);
+    return jsonError('No se pudo obtener la orden', 500);
   }
 
   if (!data) {

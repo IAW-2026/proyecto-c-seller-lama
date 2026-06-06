@@ -22,10 +22,11 @@ export async function GET(
     .select('*')
     .eq('producto_id', producto_id)
     .eq('estado_publicacion', 'activa')
-    .single();
+    .maybeSingle();
 
   if (error) {
-    return jsonError(error.message, 404);
+    console.error('Error al obtener producto publico', error);
+    return jsonError('No se pudo obtener el producto', 500);
   }
 
   if (!producto) {
