@@ -9,6 +9,8 @@ interface FormActionsProps {
   cancelHref?: string;
   onDelete?: () => void;
   showDelete?: boolean;
+  deleteDisabled?: boolean;
+  deleteDisabledMessage?: string;
   isBlocked?: boolean;
 }
 
@@ -19,9 +21,12 @@ export function FormActions({
   cancelHref = '/productos',
   onDelete,
   showDelete = false,
+  deleteDisabled = false,
+  deleteDisabledMessage,
   isBlocked = false,
 }: FormActionsProps) {
   const isDisabled = isSaving || isBlocked;
+  const isDeleteDisabled = isDisabled || deleteDisabled;
 
   return (
     <div className="space-y-3 pt-4">
@@ -44,14 +49,21 @@ export function FormActions({
       </div>
 
       {showDelete && onDelete && (
-        <button
-          type="button"
-          onClick={onDelete}
-          disabled={isDisabled}
-          className="w-full bg-red-50 hover:bg-red-100 disabled:opacity-60 disabled:cursor-not-allowed text-red-700 font-semibold py-3 px-4 rounded-lg border border-red-300 transition duration-200"
-        >
-          Eliminar producto
-        </button>
+        <div>
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={isDeleteDisabled}
+            className="w-full bg-red-50 hover:bg-red-100 disabled:opacity-60 disabled:cursor-not-allowed text-red-700 font-semibold py-3 px-4 rounded-lg border border-red-300 transition duration-200"
+          >
+            Eliminar producto
+          </button>
+          {deleteDisabled && deleteDisabledMessage && (
+            <p className="mt-2 text-xs font-medium text-[#7d3c36]">
+              {deleteDisabledMessage}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { getUserRolesById, isVendedor } from '@/lib/auth/roles';
 import { getVendedorActivoOrError } from '@/lib/vendedor-status';
 import { parsePrice } from '@/lib/product-utils';
 import type { ProductFormData, GeneroProducto } from '@/types/producto';
@@ -28,6 +29,12 @@ const ensureVendedorActivo = async (): Promise<ActionResult | null> => {
 
   if (!userId) {
     return { success: false, message: 'No autenticado.' };
+  }
+
+  const roles = await getUserRolesById(userId);
+
+  if (!isVendedor(roles)) {
+    return { success: false, message: 'No autorizado para operar como vendedor.' };
   }
 
   const status = await getVendedorActivoOrError(userId);
@@ -168,6 +175,22 @@ export async function deleteProductoAction(productoId: string): Promise<ActionRe
 
   if (!producto || producto.clerk_user_id !== userId) {
     return { success: false, message: 'No autorizado para eliminar este producto.' };
+  }
+
+  const { data: ordenesAsociadas } = await supabaseAdmin
+    .from('orden_item')
+    .select('orden_id, orden:orden_id (nro_orden)')
+    .eq('producto_id', productoId)
+    .limit(1);
+
+  if (ordenesAsociadas && ordenesAsociadas.length > 0) {
+    const orden = ordenesAsociadas[0].orden as { nro_orden?: string } | null;
+    const ordenLabel = orden?.nro_orden ? ` ${orden.nro_orden}` : '';
+
+    return {
+      success: false,
+      message: `No se puede eliminar este producto porque tiene una orden asociada${ordenLabel}.`,
+    };
   }
 
   const imageUrls = Array.isArray(producto.imagenes) ? producto.imagenes : [];

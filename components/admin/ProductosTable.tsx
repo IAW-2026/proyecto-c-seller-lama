@@ -77,7 +77,7 @@ export function ProductosTable({ productos, pagination, filtersBar }: ProductosT
                   <td className="px-6 py-4.5 text-sm text-right">
                     <div className="inline-flex justify-end">
                       <AdminTableActions
-                        editHref={`/productos/${producto.producto_id}?from=admin`}
+                        editHref={`/admin/productos/${producto.producto_id}`}
                         deleteType="producto"
                         deleteId={producto.producto_id}
                       />

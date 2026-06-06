@@ -34,6 +34,30 @@ export function isSuperAdmin(roles: UserRole[] | null | undefined): boolean {
   return Boolean(roles?.includes('super_admin'));
 }
 
+export function isVendedor(roles: UserRole[] | null | undefined): boolean {
+  return Boolean(roles?.includes('vendedor'));
+}
+
+export async function requireVendedor(): Promise<{ userId: string; roles: UserRole[] }> {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect('/sign-in');
+  }
+
+  const roles = await getUserRolesById(userId);
+
+  if (!isVendedor(roles)) {
+    if (isSuperAdmin(roles)) {
+      redirect('/admin');
+    }
+
+    redirect('/');
+  }
+
+  return { userId, roles };
+}
+
 export async function requireSuperAdmin(): Promise<{ userId: string; roles: UserRole[] }> {
   const { userId } = await auth();
 

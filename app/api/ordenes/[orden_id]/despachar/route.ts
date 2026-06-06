@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server';
 import { supabase } from '@/lib/supabase';
 import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
+import { getUserRolesById, isVendedor } from '@/lib/auth/roles';
 import { getVendedorActivoOrError } from '@/lib/vendedor-status';
 
 type ShippingResponse = {
@@ -21,6 +22,12 @@ export async function POST(
 
   if (!userId) {
     return jsonError('No autenticado', 401);
+  }
+
+  const roles = await getUserRolesById(userId);
+
+  if (!isVendedor(roles)) {
+    return jsonError('No autorizado para operar como vendedor', 403);
   }
 
   const status = await getVendedorActivoOrError(userId);

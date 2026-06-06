@@ -1,9 +1,8 @@
-import { redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { VentasClient } from '@/components/ventas/VentasClient';
 import { VentasStats } from '@/components/ventas/VentasStats';
 import { VendedorInactivoBanner } from '@/components/ui/VendedorInactivoBanner';
+import { requireVendedor } from '@/lib/auth/roles';
 import { getVendedorActivoById } from '@/lib/vendedor-status';
 import { VentasFilters } from '@/components/ventas/VentasFilters';
 import { Pagination } from '@/components/ui/Pagination';
@@ -21,11 +20,7 @@ interface VentasPageProps {
 }
 
 export default async function VentasPage({ searchParams }: VentasPageProps) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect('/sign-in');
-  }
+  const { userId } = await requireVendedor();
 
   const params = await searchParams;
   const vendedorActivo = await getVendedorActivoById(userId);

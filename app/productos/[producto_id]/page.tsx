@@ -2,8 +2,7 @@ import Link from 'next/link';
 import { ProductoEditForm } from '@/components/productos/ProductoEditForm';
 import { supabase } from '@/lib/supabase';
 import type { Producto } from '@/types';
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import { requireVendedor } from '@/lib/auth/roles';
 import { getVendedorActivoById } from '@/lib/vendedor-status';
 
 interface Props {
@@ -21,11 +20,7 @@ interface Categoria {
 }
 
 export default async function ProductoDetallePage({ params, searchParams }: Props) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect('/sign-in');
-  }
+  const { userId } = await requireVendedor();
 
   const vendedorActivo = await getVendedorActivoById(userId);
   
@@ -47,10 +42,16 @@ export default async function ProductoDetallePage({ params, searchParams }: Prop
     .eq('clerk_user_id', userId)
     .single(); 
 
-  const { data: categorias, error: categoriasError } = await supabase
+  const { data: categorias } = await supabase
     .from('categoria_producto')
     .select('categoria_producto_id, nombre')
     .order('nombre', { ascending: true });
+
+  const { data: ordenesAsociadas } = await supabase
+    .from('orden_item')
+    .select('orden_id')
+    .eq('producto_id', producto_id)
+    .limit(1);
 
   if (error || !producto) {
     return (
@@ -82,6 +83,7 @@ export default async function ProductoDetallePage({ params, searchParams }: Prop
       categorias={(categorias as Categoria[]) || []}
       returnPath={returnPath}
       vendedorActivo={vendedorActivo}
+      hasOrdenAsociada={Boolean(ordenesAsociadas?.length)}
     />
   );
 }

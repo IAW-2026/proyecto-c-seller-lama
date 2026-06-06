@@ -49,9 +49,8 @@ export const uploadProductImages = async (
   return Promise.all(uploadPromises);
 };
 
-/**
- * Crea un nuevo producto en la base de datos
- */
+//no se usa quedo viejo cuando usaba directo de supabase, 
+// ahora uso server actions que valida y verifica antes de insertar o actulizar en la bd.
 export const createProduct = async (
   userId: string,
   formData: ProductFormData,
@@ -77,92 +76,4 @@ export const createProduct = async (
   }
 };
 
-/**
- * Actualiza un producto existente en la base de datos
- */
-export const updateProduct = async (
-  productoId: string,
-  formData: ProductFormData,
-  imageUrls: string[]
-): Promise<void> => {
-  const precioNumerico = parsePrice(formData.precio);
 
-  const { error } = await supabase
-    .from('producto')
-    .update({
-      titulo: formData.titulo,
-      descripcion: formData.descripcion || null,
-      precio: precioNumerico,
-      imagenes: imageUrls.length > 0 ? imageUrls : null,
-      categoria_id: formData.categoria_id,
-      estado_prenda: formData.estado_prenda,
-      talle: formData.talle || null,
-      marca: formData.marca || null,
-      estado_publicacion: formData.estado_publicacion,
-    })
-    .eq('producto_id', productoId);
-
-  if (error) {
-    throw new Error(`Error al actualizar producto: ${error.message}`);
-  }
-};
-
-/**
- * Elimina imágenes del producto desde Supabase Storage
- */
-export const deleteProductImages = async (
-  imageUrls: string[]
-): Promise<void> => {
-  if (imageUrls.length === 0) return;
-
-  const filePaths = imageUrls.map((url) => {
-    const urlParts = url.split('/productos/');
-    return `productos/${urlParts[1]}`;
-  });
-
-  const { error } = await supabase.storage
-    .from('productos')
-    .remove(filePaths);
-
-  if (error) {
-    throw new Error(`Error al eliminar imágenes: ${error.message}`);
-  }
-};
-
-/**
- * Elimina un producto de la base de datos
- */
-export const deleteProduct = async (
-  productoId: string,
-  imageUrls: string[]
-): Promise<void> => {
-  // Eliminar imágenes primero
-  await deleteProductImages(imageUrls);
-
-  // Eliminar producto
-  const { error } = await supabase
-    .from('producto')
-    .delete()
-    .eq('producto_id', productoId);
-
-  if (error) {
-    throw new Error(`Error al eliminar producto: ${error.message}`);
-  }
-};
-
-/**
- * Crea una nueva categoria de producto
- */
-export const createCategoriaProducto = async (nombre: string) => {
-  const { data, error } = await supabase
-    .from('categoria_producto')
-    .insert({ nombre })
-    .select('categoria_producto_id, nombre')
-    .single();
-
-  if (error || !data) {
-    throw new Error(`Error al crear categoria: ${error?.message || 'sin datos'}`);
-  }
-
-  return data as { categoria_producto_id: string; nombre: string };
-};

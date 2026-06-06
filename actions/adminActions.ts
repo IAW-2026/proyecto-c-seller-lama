@@ -2,12 +2,20 @@
 
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
+import { requireSuperAdmin } from '@/lib/auth/roles';
+import { parsePrice } from '@/lib/product-utils';
 import type { Orden } from '@/types';
+import type { ProductFormData } from '@/types/producto';
 
 type ActionResult = {
   success: boolean;
   message: string;
 };
+
+const GENEROS_VALIDOS = new Set(['hombre', 'mujer', 'niÃ±os']);
+
+const isGeneroValido = (genero: unknown): genero is ProductFormData['genero'] =>
+  typeof genero === 'string' && GENEROS_VALIDOS.has(genero);
 
 type UpdateVendedorPayload = {
   clerk_user_id: string;
@@ -24,6 +32,12 @@ type UpdateOrdenPayload = {
   estado_pago: Orden['estado_pago'];
   estado_envio: Orden['estado_envio'];
   direccion_envio: string;
+};
+
+type UpdateProductoPayload = {
+  producto_id: string;
+  formData: ProductFormData;
+  imageUrls: string[];
 };
 
 export async function deleteProducto(productoId: string): Promise<ActionResult> {
@@ -174,6 +188,51 @@ export async function updateVendedor(
   return {
     success: true,
     message: 'Vendedor actualizado exitosamente.',
+  };
+}
+
+export async function updateProductoAdmin(
+  payload: UpdateProductoPayload
+): Promise<ActionResult> {
+  await requireSuperAdmin();
+
+  if (!isGeneroValido(payload.formData.genero)) {
+    return { success: false, message: 'El gÃ©nero seleccionado no es vÃ¡lido.' };
+  }
+
+  const precioNumerico = parsePrice(payload.formData.precio);
+
+  const { error } = await supabase
+    .from('producto')
+    .update({
+      titulo: payload.formData.titulo,
+      descripcion: payload.formData.descripcion || null,
+      precio: precioNumerico,
+      imagenes: payload.imageUrls.length > 0 ? payload.imageUrls : null,
+      categoria_id: payload.formData.categoria_id,
+      estado_prenda: payload.formData.estado_prenda,
+      talle: payload.formData.talle || null,
+      marca: payload.formData.marca || null,
+      estado_publicacion: payload.formData.estado_publicacion,
+      genero: payload.formData.genero,
+    })
+    .eq('producto_id', payload.producto_id);
+
+  if (error) {
+    return {
+      success: false,
+      message: 'No se pudo actualizar el producto. Intenta nuevamente.',
+    };
+  }
+
+  revalidatePath('/admin');
+  revalidatePath(`/admin/productos/${payload.producto_id}`);
+  revalidatePath('/productos');
+  revalidatePath(`/productos/${payload.producto_id}`);
+
+  return {
+    success: true,
+    message: 'Producto actualizado exitosamente.',
   };
 }
 

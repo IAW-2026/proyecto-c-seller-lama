@@ -30,6 +30,7 @@ interface ProductoEditFormProps {
   categorias?: Categoria[];
   returnPath?: string;
   vendedorActivo: boolean;
+  hasOrdenAsociada?: boolean;
 }
 
 export function ProductoEditForm({
@@ -37,6 +38,7 @@ export function ProductoEditForm({
   categorias = [],
   returnPath = '/productos',
   vendedorActivo,
+  hasOrdenAsociada = false,
 }: ProductoEditFormProps) {
   const router = useRouter();
   const notification = useNotification();
@@ -145,8 +147,8 @@ export function ProductoEditForm({
     e.target.value = '';
   };
 
-  const handleRemoveExistingImage = (imageUrl: string) => {
-    setExistingImages((prev) => prev.filter((url) => url !== imageUrl));
+  const handleRemoveExistingImage = (index: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleRemoveNewImage = (index: number) => {
@@ -161,6 +163,14 @@ export function ProductoEditForm({
       notification.showWarning('Tu cuenta de vendedor se encuentra inactiva.');
       return;
     }
+
+    if (hasOrdenAsociada) {
+      notification.showWarning(
+        'No podes eliminar este producto porque tiene una orden asociada.'
+      );
+      return;
+    }
+
     notification.showWithAction(
       '¿Estás seguro de que querés eliminar este producto?',
       'warning',
@@ -229,10 +239,9 @@ export function ProductoEditForm({
         newImages
       );
 
-      const finalImageUrls = [
-        ...existingImages,
-        ...uploadedImageUrls,
-      ];
+      const finalImageUrls = Array.from(
+        new Set([...existingImages, ...uploadedImageUrls])
+      );
 
       const result = await updateProductoAction(
         producto.producto_id,
@@ -312,6 +321,8 @@ export function ProductoEditForm({
                 onSubmit={handleSave}
                 onDelete={handleDelete}
                 showDelete
+                deleteDisabled={hasOrdenAsociada}
+                deleteDisabledMessage="No se puede eliminar un producto con orden asociada."
                 submitLabel="Guardar cambios"
                 isBlocked={!vendedorActivo}
               />

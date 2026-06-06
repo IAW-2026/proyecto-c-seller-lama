@@ -1,12 +1,11 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
 import { ProductoCard } from '@/components/productos/ProductoCard';
 import { ProductFilters } from '@/components/productos/ProductFilters';
 import { ProductosStats } from '@/components/productos/ProductosStats';
 import { Pagination } from '@/components/ui/Pagination';
 import { PageContainer } from '@/components/ui/PageContainer';
 import { VendedorInactivoBanner } from '@/components/ui/VendedorInactivoBanner';
+import { requireVendedor } from '@/lib/auth/roles';
 import { getVendedorActivoById } from '@/lib/vendedor-status';
 import {
   buildProductosQueryString,
@@ -26,11 +25,7 @@ interface ProductosPageProps {
 export default async function ProductosPage({
   searchParams,
 }: ProductosPageProps) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect('/sign-in');
-  }
+  const { userId } = await requireVendedor();
 
   const params = await searchParams;
   const vendedorActivo = await getVendedorActivoById(userId);

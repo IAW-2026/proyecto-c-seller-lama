@@ -1,15 +1,10 @@
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
 import { ProductoCreateForm } from '@/components/productos/ProductoCreateForm';
 import { supabase } from '@/lib/supabase';
+import { requireVendedor } from '@/lib/auth/roles';
 import { getVendedorActivoById } from '@/lib/vendedor-status';
 
 export default async function NuevoProductoPage() {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect('/sign-in');
-  }
+  const { userId } = await requireVendedor();
 
   const vendedorActivo = await getVendedorActivoById(userId);
 

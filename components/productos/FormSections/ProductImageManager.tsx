@@ -2,7 +2,7 @@ interface ProductImageManagerProps {
   existingImages: string[];
   newImagePreviews: string[];
   onAddImages: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemoveExistingImage: (imageUrl: string) => void;
+  onRemoveExistingImage: (index: number) => void;
   onRemoveNewImage: (index: number) => void;
   disabled?: boolean;
 }
@@ -25,9 +25,9 @@ export function ProductImageManager({
 
       {hasImages ? (
         <div className="grid grid-cols-2 gap-4 mb-6">
-          {existingImages.map((imageUrl) => (
+          {existingImages.map((imageUrl, index) => (
             <div
-              key={imageUrl}
+              key={`${imageUrl}-${index}`}
               className="relative rounded-lg overflow-hidden border border-[#d8cfbd] bg-white"
             >
               <img
@@ -38,7 +38,7 @@ export function ProductImageManager({
 
               <button
                 type="button"
-                onClick={() => onRemoveExistingImage(imageUrl)}
+                onClick={() => onRemoveExistingImage(index)}
                 disabled={disabled}
                 className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded-md hover:bg-red-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
               >
