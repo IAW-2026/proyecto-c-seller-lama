@@ -9,6 +9,7 @@ const DEFAULT_PAGE_SIZE = 10;
 type OrdenItemRecord = {
   producto_id: string;
   precio_unitario: number;
+  producto?: ProductoOrdenRecord | ProductoOrdenRecord[] | null;
 };
 
 type OrdenRecord = {
@@ -24,20 +25,50 @@ type OrdenRecord = {
   orden_item: OrdenItemRecord[] | null;
 };
 
+type ProductoOrdenRecord = {
+  clerk_user_id: string;
+  titulo?: string | null;
+  imagenes?: string[] | null;
+};
+
 const parsePositiveInt = (value: string | null, fallback: number) => {
   const parsed = Number.parseInt(value || '', 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+const normalizeString = (value: string | null) => {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : undefined;
+};
+
+const getProductoData = (producto: OrdenItemRecord['producto']) =>
+  Array.isArray(producto) ? producto[0] : producto;
+
 const mapOrdenResponse = (orden: OrdenRecord) => {
-  const items = (orden.orden_item || []).map((item) => ({
-    producto_id: item.producto_id,
-    precio_unitario: item.precio_unitario,
-  }));
+  const vendedorId = (orden.orden_item || []).reduce<string | null>(
+    (current, item) => {
+      if (current) return current;
+      return getProductoData(item.producto)?.clerk_user_id ?? null;
+    },
+    null
+  );
+
+  const items = (orden.orden_item || []).map((item) => {
+    const producto = getProductoData(item.producto);
+
+    return {
+      producto_id: item.producto_id,
+      precio_unitario: item.precio_unitario,
+      titulo: producto?.titulo ?? null,
+      imagenes: producto?.imagenes ?? [],
+    };
+  });
 
   return {
     orden_id: orden.nro_orden,
     comprador_id: orden.clerk_user_id,
+    vendedor_id: vendedorId,
     items,
     producto_ids: items.map((item) => item.producto_id),
     total: orden.total,
@@ -74,7 +105,7 @@ const isValidItem = (value: OrdenItemInput) =>
   isNumber(value.precio_unitario) &&
   value.precio_unitario >= 0;
 
-const ordenListSelect = `
+const buildOrdenListSelect = (filterByVendedor: boolean) => `
   nro_orden,
   clerk_user_id,
   total,
@@ -84,14 +115,19 @@ const ordenListSelect = `
   direccion_envio,
   fecha_creacion,
   fecha_actualizacion,
-  orden_item (
+  orden_item${filterByVendedor ? '!inner' : ''} (
     producto_id,
-    precio_unitario
+    precio_unitario,
+    producto${filterByVendedor ? '!inner' : ''} (
+      clerk_user_id,
+      titulo,
+      imagenes
+    )
   )
 `;
 
 /*
-Endpoint para listar ordenes de venta de un comprador
+Endpoint para listar ordenes de venta
 */
 export async function GET(request: NextRequest) {
   const authError = requireServiceApiKey(request, [
@@ -102,11 +138,11 @@ export async function GET(request: NextRequest) {
   if (authError) return authError;
 
   const { searchParams } = request.nextUrl;
-  const comprador_id = searchParams.get('comprador_id');
-
-  if (!isNonEmptyString(comprador_id)) {
-    return jsonError('comprador_id es requerido', 400);
-  }
+  const compradorId = normalizeString(searchParams.get('comprador_id'));
+  const vendedorId = normalizeString(searchParams.get('vendedor_id'));
+  const estadoGeneral = normalizeString(searchParams.get('estado_general'));
+  const estadoPago = normalizeString(searchParams.get('estado_pago'));
+  const estadoEnvio = normalizeString(searchParams.get('estado_envio'));
 
   const page = parsePositiveInt(searchParams.get('page'), 1);
   const pageSize = parsePositiveInt(
@@ -116,21 +152,41 @@ export async function GET(request: NextRequest) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const { data, error, count } = await supabase
+  let query = supabase
     .from('orden')
-    .select(ordenListSelect, { count: 'exact' })
-    .eq('clerk_user_id', comprador_id)
+    .select(buildOrdenListSelect(Boolean(vendedorId)), { count: 'exact' });
+
+  if (compradorId) {
+    query = query.eq('clerk_user_id', compradorId);
+  }
+
+  if (vendedorId) {
+    query = query.eq('orden_item.producto.clerk_user_id', vendedorId);
+  }
+
+  if (estadoGeneral) {
+    query = query.eq('estado_general', estadoGeneral);
+  }
+
+  if (estadoPago) {
+    query = query.eq('estado_pago', estadoPago);
+  }
+
+  if (estadoEnvio) {
+    query = query.eq('estado_envio', estadoEnvio);
+  }
+
+  const { data, error, count } = await query
     .order('fecha_creacion', { ascending: false })
     .range(from, to);
 
   if (error) {
-    console.error('Error al listar ordenes de comprador', error);
+    console.error('Error al listar ordenes de venta', error);
     return jsonError('No se pudieron obtener las ordenes', 500);
   }
 
-  const items = (data || []).map((orden) =>
-    mapOrdenResponse(orden as OrdenRecord)
-  );
+  const ordenes = (data || []) as unknown as OrdenRecord[];
+  const items = ordenes.map(mapOrdenResponse);
 
   return NextResponse.json(
     {
