@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireInternalApiKey } from '@/lib/api-auth';
+import { requireServiceApiKey } from '@/lib/api-auth';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 
 type ProductoOrdenRecord = {
@@ -95,7 +95,13 @@ export async function GET(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
-  const authError = requireInternalApiKey(request);
+  const authError = requireServiceApiKey(request, [
+    'buyer',
+    'shipping',
+    'payments',
+    'control-plane',
+    'analytics',
+  ]);
   if (authError) return authError;
 
   const params = await props.params;

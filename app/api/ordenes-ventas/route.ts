@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireInternalApiKey } from '@/lib/api-auth';
+import { requireServiceApiKey } from '@/lib/api-auth';
 import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, isNumber, jsonError, parseJson } from '@/app/api/_utils';
 
@@ -94,7 +94,11 @@ const ordenListSelect = `
 Endpoint para listar ordenes de venta de un comprador
 */
 export async function GET(request: NextRequest) {
-  const authError = requireInternalApiKey(request);
+  const authError = requireServiceApiKey(request, [
+    'buyer',
+    'control-plane',
+    'analytics',
+  ]);
   if (authError) return authError;
 
   const { searchParams } = request.nextUrl;
@@ -143,7 +147,7 @@ export async function GET(request: NextRequest) {
 Endpoint para crear una nueva orden de venta 
 */
 export async function POST(request: NextRequest) {
-  const authError = requireInternalApiKey(request);
+  const authError = requireServiceApiKey(request, ['buyer']);
   if (authError) return authError;
 
   const { data, error } = await parseJson<OrdenCreateInput>(request);

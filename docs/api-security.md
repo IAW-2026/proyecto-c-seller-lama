@@ -21,24 +21,67 @@ Helpers principales:
 - `requireRole(role)`: exige sesion y que el usuario tenga el rol pedido.
 - `requireVendedor()`: exige rol `vendedor`.
 - `requireSuperAdmin()`: exige rol `super_admin`.
-- `requireInternalApiKey(request)`: valida el header `x-api-key` contra `INTERNAL_API_KEY`.
+- `requireServiceApiKey(request, allowedServices)`: valida llamadas internas entre apps usando `x-service-name` y `x-api-key`.
 - `jsonError(message, status)`: devuelve errores JSON con formato consistente.
 
 Tambien existe `lib/api-auth.ts`, que reexporta esos helpers para mantener el estilo de imports del proyecto.
 
-## Endpoints publicos
+## APIs internas entre apps
 
-Estos endpoints quedan publicos porque los consume Buyer o el catalogo:
+Las aplicaciones externas del marketplace deben autenticarse como servicio. 
 
-- `GET /api/productos`
-- `GET /api/productos/[producto_id]`
-- `GET /api/productos/bulk`
-- `GET /api/categorias-productos`
-- `GET /api/vendedores`
+Estas keys son secretos de servidor. No deben enviarse desde componentes client-side ni quedar expuestas en el navegador.
 
-Aunque son publicos, no devuelven cualquier dato. Los productos publicos se filtran por `estado_publicacion = 'activa'`, por lo que no se exponen productos `inactiva` o `vendida`. Tambien se validan parametros de busqueda, filtros y paginacion.
+Headers requeridos:
 
-Consecuencia importante: si un producto cambia a `vendida` o `inactiva`, deja de aparecer para Buyer aunque siga existiendo en la base.
+```http
+x-service-name: buyer | shipping | payments | control-plane | analytics
+x-api-key: <key correspondiente al servicio>
+```
+
+Variables de entorno:
+
+```env
+BUYER_API_KEY=
+SHIPPING_API_KEY=
+PAYMENTS_API_KEY=
+CONTROL_PLANE_API_KEY=
+ANALYTICS_API_KEY=
+```
+
+Reglas aplicadas por `requireServiceApiKey(request, allowedServices)`:
+
+- devuelve `401` si falta `x-service-name` o `x-api-key`;
+- devuelve `401` si `x-service-name` no corresponde a un servicio conocido;
+- devuelve `403` si el servicio existe, pero no esta permitido para ese endpoint;
+- devuelve `500` si falta configurar la variable de entorno del servicio permitido;
+- compara la key recibida contra la key esperada usando hash SHA-256 y `timingSafeEqual`.
+
+## Permisos por endpoint
+
+### Catalogo entre apps
+
+Estos endpoints exponen datos de catalogo filtrados para consumo entre aplicaciones. Los productos se filtran por `estado_publicacion = 'activa'`.
+
+| Endpoint | Metodo | Servicios permitidos |
+| --- | --- | --- |
+| `/api/productos` | `GET` | `buyer`, `control-plane`, `analytics` |
+| `/api/productos/[producto_id]` | `GET` | `buyer`, `control-plane`, `analytics` |
+| `/api/productos/bulk` | `GET` | `buyer`, `control-plane`, `analytics` |
+| `/api/categorias-productos` | `GET` | `buyer`, `control-plane`, `analytics` |
+| `/api/vendedores` | `GET` | `control-plane`, `analytics` |
+
+### Ordenes entre apps
+
+| Endpoint | Metodo | Servicios permitidos |
+| --- | --- | --- |
+| `/api/ordenes-ventas` | `GET` | `buyer`, `control-plane`, `analytics` |
+| `/api/ordenes-ventas` | `POST` | `buyer` |
+| `/api/ordenes-ventas/[orden_id]` | `GET` | `buyer`, `shipping`, `payments`, `control-plane`, `analytics` |
+| `/api/ordenes-ventas/[orden_id]/estado` | `GET` | `buyer`, `shipping`, `payments`, `control-plane`, `analytics` |
+| `/api/ordenes-ventas/[orden_id]/estado-pago` | `PATCH` | `payments` |
+| `/api/ordenes-ventas/[orden_id]/estado-envio` | `PATCH` | `shipping` |
+| `/api/ordenes/[orden_id]/liquidacion-vendedor` | `PATCH` | `payments` |
 
 ## Endpoints de vendedor
 
@@ -49,19 +92,18 @@ Estos endpoints requieren sesion y rol `vendedor`:
 
 Ademas, las server actions de productos tambien validan vendedor:
 
-- crear producto
-- editar producto
-- eliminar producto
-- crear categoria desde el formulario de producto
+- crear producto;
+- editar producto;
+- eliminar producto;
+- crear categoria desde el formulario de producto.
 
 Reglas aplicadas:
 
-- Se obtiene el `userId` desde Clerk.
-- No se confia en un `clerk_user_id` enviado por el cliente.
-- Las consultas se filtran por el vendedor dueno del recurso.
-- Si el recurso existe pero pertenece a otro vendedor, se devuelve `403`.
-- Si el vendedor esta inactivo, no puede operar.
-
+- se obtiene el `userId` desde Clerk;
+- no se confia en un `clerk_user_id` enviado por el cliente;
+- las consultas se filtran por el vendedor dueno del recurso;
+- si el recurso existe pero pertenece a otro vendedor, se devuelve `403`;
+- si el vendedor esta inactivo, no puede operar.
 
 ## Acciones de administrador
 
@@ -69,51 +111,21 @@ Las acciones administrativas requieren rol `super_admin`.
 
 Acciones protegidas:
 
-- eliminar producto
-- eliminar orden
-- desactivar vendedor
-- activar vendedor
-- editar vendedor
-- editar producto desde admin
-- editar orden
+- eliminar producto;
+- eliminar orden;
+- desactivar vendedor;
+- activar vendedor;
+- editar vendedor;
+- editar producto desde admin;
+- editar orden.
 
 El administrador puede operar globalmente, por eso no se filtra por `clerk_user_id` del vendedor. La validacion clave es el rol `super_admin`.
-
-Consecuencia importante: si un usuario sin rol admin intenta llamar una action admin, la validacion del servidor lo corta antes de modificar datos.
-
-## Endpoints internos entre apps
-
-Estos endpoints no usan Clerk de usuario porque los consumen otras aplicaciones del marketplace de servidor a servidor, como Buyer, Shipping o Payments.
-
-Se protegen con el header:
-
-```http
-x-api-key: <valor de INTERNAL_API_KEY>
-```
-
-Endpoints internos protegidos:
-
-- `GET /api/ordenes-ventas`
-- `POST /api/ordenes-ventas`
-- `GET /api/ordenes-ventas/[orden_id]`
-- `GET /api/ordenes-ventas/[orden_id]/estado`
-- `PATCH /api/ordenes-ventas/[orden_id]/estado-pago`
-- `PATCH /api/ordenes-ventas/[orden_id]/estado-envio`
-- `PATCH /api/ordenes/[orden_id]/liquidacion-vendedor`
-
-La variable esta documentada en `.env.example`:
-
-```env
-INTERNAL_API_KEY=
-```
-
-Consecuencia importante: si falta el header, o si el valor no coincide, el endpoint devuelve `401`. Si la variable no esta configurada en el servidor, devuelve `500` porque la app no esta preparada para aceptar llamadas internas.
 
 ## Validaciones y errores
 
 Las APIs validan:
 
-- sesion, rol o API key segun el tipo de endpoint;
+- sesion, rol o API key de servicio segun el tipo de endpoint;
 - parametros de URL;
 - body JSON;
 - estados permitidos;
@@ -123,7 +135,7 @@ Las APIs validan:
 Codigos usados:
 
 - `400`: datos invalidos o incompletos.
-- `401`: no autenticado o falta API key interna.
+- `401`: no autenticado o falta credencial interna.
 - `403`: autenticado, pero sin permiso o sin pertenencia sobre el recurso.
 - `404`: recurso no encontrado.
 - `500`: error interno del servidor.
@@ -143,7 +155,7 @@ El `proxy.ts` protege paginas privadas:
 
 Si no hay sesion, redirige a `/sign-in`.
 
-El proxy no bloquea los endpoints publicos ni las llamadas internas con `x-api-key`. Las APIs pasan por el proxy, pero la autorizacion real se decide dentro de cada route handler.
+El proxy no bloquea los endpoints entre apps. Las APIs pasan por el proxy, pero la autorizacion real se decide dentro de cada route handler.
 
 ## Diferencia entre UI y seguridad real
 
@@ -161,9 +173,57 @@ Pero la seguridad real esta en:
 - route handlers;
 - validacion de roles;
 - validacion de pertenencia por `clerk_user_id`;
-- validacion de `x-api-key` para llamadas internas.
+- validacion de `x-service-name` y `x-api-key` para llamadas internas.
 
 Si alguien llama una API manualmente desde Postman o desde otro cliente, igual debe pasar esas validaciones.
+
+## Ejemplos curl
+
+Listar productos desde Buyer:
+
+```bash
+curl -H "x-service-name: buyer" \
+  -H "x-api-key: $BUYER_API_KEY" \
+  "https://proyecto-c-seller-lama.vercel.app/api/productos"
+```
+
+Crear orden desde Buyer:
+
+```bash
+curl -X POST "https://proyecto-c-seller-lama.vercel.app/api/ordenes-ventas" \
+  -H "content-type: application/json" \
+  -H "x-service-name: buyer" \
+  -H "x-api-key: $BUYER_API_KEY" \
+  -d '{"orden_id":"ORD-123","comprador_id":"user_123","items":[{"producto_id":"producto_123","precio_unitario":1000}],"precio_total":1000,"direccion_envio":"Calle 123"}'
+```
+
+Actualizar estado de envio desde Shipping:
+
+```bash
+curl -X PATCH "https://proyecto-c-seller-lama.vercel.app/api/ordenes-ventas/ORD-123/estado-envio" \
+  -H "content-type: application/json" \
+  -H "x-service-name: shipping" \
+  -H "x-api-key: $SHIPPING_API_KEY" \
+  -d '{"estado_envio":"despachado","envio_id":"ENV-123","codigo_seguimiento":"TRACK-123"}'
+```
+
+Actualizar estado de pago desde Payments:
+
+```bash
+curl -X PATCH "https://proyecto-c-seller-lama.vercel.app/api/ordenes-ventas/ORD-123/estado-pago" \
+  -H "content-type: application/json" \
+  -H "x-service-name: payments" \
+  -H "x-api-key: $PAYMENTS_API_KEY" \
+  -d '{"estado_pago":"aprobado","pago_id":"PAY-123"}'
+```
+
+Listar vendedores desde Analytics:
+
+```bash
+curl -H "x-service-name: analytics" \
+  -H "x-api-key: $ANALYTICS_API_KEY" \
+  "https://proyecto-c-seller-lama.vercel.app/api/vendedores"
+```
 
 ## Flujos importantes
 
@@ -189,18 +249,19 @@ Si alguien llama una API manualmente desde Postman o desde otro cliente, igual d
 ### Crear orden desde Buyer
 
 1. Buyer llama a Seller desde servidor.
-2. Envia `x-api-key`.
-3. Seller valida la API key interna.
-4. Seller valida body, productos y precios.
-5. Seller crea la orden y sus items.
-6. Seller marca los productos como `vendida`.
+2. Envia `x-service-name: buyer`.
+3. Envia `x-api-key` con el valor de `BUYER_API_KEY`.
+4. Seller valida el servicio y la key.
+5. Seller valida body, productos y precios.
+6. Seller crea la orden y sus items.
+7. Seller marca los productos como `vendida`.
 
 ### Actualizar pago o envio
 
 1. Payments o Shipping llama a Seller desde servidor.
-2. Envia `x-api-key`.
-3. Seller valida la API key interna.
-4. Seller valida el estado recibido.
-5. Seller actualiza la orden.
-6. El `estado_general` puede derivarse por logica de base de datos si existe un trigger.
-
+2. Envia su `x-service-name`.
+3. Envia su `x-api-key`.
+4. Seller valida que el servicio este permitido para el endpoint.
+5. Seller valida el estado recibido.
+6. Seller actualiza la orden.
+7. El `estado_general` puede derivarse por logica de base de datos si existe un trigger.

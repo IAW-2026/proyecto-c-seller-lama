@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireServiceApiKey } from '@/lib/api-auth';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 
 const DEFAULT_PAGE_SIZE = 12;
@@ -23,6 +24,12 @@ const normalizeString = (value: string | null) => {
 
 /*Endpoint para listar vendedores con filtros de búsqueda y paginación */
 export async function GET(request: NextRequest) {
+  const authError = requireServiceApiKey(request, [
+    'control-plane',
+    'analytics',
+  ]);
+  if (authError) return authError;
+
   const { searchParams } = request.nextUrl;
 
   const search = normalizeString(searchParams.get('search'));

@@ -1,9 +1,16 @@
 import 'server-only';
 
+import { createHash, timingSafeEqual } from 'node:crypto';
 import { auth, clerkClient } from '@clerk/nextjs/server';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export type ApiRole = 'vendedor' | 'super_admin';
+export type InternalServiceName =
+  | 'buyer'
+  | 'shipping'
+  | 'payments'
+  | 'control-plane'
+  | 'analytics';
 
 export type ApiAuthResult = {
   ok: true;
@@ -17,6 +24,18 @@ export type ApiAuthResult = {
 type JsonError = {
   error: string;
 };
+
+const serviceApiKeyEnvVars: Record<InternalServiceName, string> = {
+  buyer: 'BUYER_API_KEY',
+  shipping: 'SHIPPING_API_KEY',
+  payments: 'PAYMENTS_API_KEY',
+  'control-plane': 'CONTROL_PLANE_API_KEY',
+  analytics: 'ANALYTICS_API_KEY',
+};
+
+const internalServiceNames = new Set<InternalServiceName>(
+  Object.keys(serviceApiKeyEnvVars) as InternalServiceName[]
+);
 
 const normalizeRoles = (roles: unknown): ApiRole[] => {
   if (typeof roles === 'string') {
@@ -76,17 +95,49 @@ export const requireVendedor = () => requireRole('vendedor');
 
 export const requireSuperAdmin = () => requireRole('super_admin');
 
-export function requireInternalApiKey(request: NextRequest | Request) {
-  const expectedApiKey = process.env.INTERNAL_API_KEY;
+const normalizeInternalServiceName = (
+  serviceName: string | null
+): InternalServiceName | null => {
+  const normalized = serviceName?.trim().toLowerCase();
+
+  if (!normalized) return null;
+  if (!internalServiceNames.has(normalized as InternalServiceName)) return null;
+
+  return normalized as InternalServiceName;
+};
+
+const hashApiKey = (apiKey: string) =>
+  createHash('sha256').update(apiKey).digest();
+
+const safeCompareApiKeys = (receivedApiKey: string, expectedApiKey: string) =>
+  timingSafeEqual(hashApiKey(receivedApiKey), hashApiKey(expectedApiKey));
+
+export function requireServiceApiKey(
+  request: NextRequest | Request,
+  allowedServices: readonly InternalServiceName[]
+) {
+  const receivedApiKey = request.headers.get('x-api-key');
+  const serviceName = normalizeInternalServiceName(
+    request.headers.get('x-service-name')
+  );
+
+  if (!receivedApiKey || !serviceName) {
+    return jsonError('No autorizado', 401);
+  }
+
+  if (!allowedServices.includes(serviceName)) {
+    return jsonError('Servicio no autorizado', 403);
+  }
+
+  const envVarName = serviceApiKeyEnvVars[serviceName];
+  const expectedApiKey = process.env[envVarName];
 
   if (!expectedApiKey) {
-    console.error('INTERNAL_API_KEY no configurada');
+    console.error(`${envVarName} no configurada`);
     return jsonError('Configuracion de API interna no disponible', 500);
   }
 
-  const receivedApiKey = request.headers.get('x-api-key');
-
-  if (!receivedApiKey || receivedApiKey !== expectedApiKey) {
+  if (!safeCompareApiKeys(receivedApiKey, expectedApiKey)) {
     return jsonError('No autorizado', 401);
   }
 
