@@ -114,34 +114,99 @@ const hashApiKey = (apiKey: string) =>
 const safeCompareApiKeys = (receivedApiKey: string, expectedApiKey: string) =>
   timingSafeEqual(hashApiKey(receivedApiKey), hashApiKey(expectedApiKey));
 
+const getBearerToken = (authorizationHeader: string | null) => {
+  if (!authorizationHeader) return null;
+
+  const [scheme, ...tokenParts] = authorizationHeader.trim().split(/\s+/);
+  const token = tokenParts.join(' ');
+
+  if (scheme?.toLowerCase() !== 'bearer' || !token) return null;
+
+  return token;
+};
+
+const getReceivedApiKey = (request: NextRequest | Request) =>
+  request.headers.get('x-api-key') ||
+  request.headers.get('x-internal-api-key') ||
+  getBearerToken(request.headers.get('authorization'));
+
+const getConfiguredServiceKeys = (
+  services: readonly InternalServiceName[] = Object.keys(
+    serviceApiKeyEnvVars
+  ) as InternalServiceName[]
+) =>
+  services
+    .map((serviceName) => ({
+      serviceName,
+      apiKey: process.env[serviceApiKeyEnvVars[serviceName]],
+    }))
+    .filter(
+      (service): service is {
+        serviceName: InternalServiceName;
+        apiKey: string;
+      } => Boolean(service.apiKey)
+    );
+
 export function requireServiceApiKey(
   request: NextRequest | Request,
   allowedServices: readonly InternalServiceName[]
 ) {
-  const receivedApiKey = request.headers.get('x-api-key');
-  const serviceName = normalizeInternalServiceName(
-    request.headers.get('x-service-name')
-  );
+  const receivedApiKey = getReceivedApiKey(request);
+  const rawServiceName = request.headers.get('x-service-name');
+  const serviceName = normalizeInternalServiceName(rawServiceName);
 
-  if (!receivedApiKey || !serviceName) {
+  if (!receivedApiKey) {
     return jsonError('No autorizado', 401);
   }
 
-  if (!allowedServices.includes(serviceName)) {
-    return jsonError('Servicio no autorizado', 403);
+  if (rawServiceName && !serviceName) {
+    return jsonError('No autorizado', 401);
   }
 
-  const envVarName = serviceApiKeyEnvVars[serviceName];
-  const expectedApiKey = process.env[envVarName];
+  if (serviceName) {
+    if (!allowedServices.includes(serviceName)) {
+      return jsonError('Servicio no autorizado', 403);
+    }
 
-  if (!expectedApiKey) {
-    console.error(`${envVarName} no configurada`);
+    const envVarName = serviceApiKeyEnvVars[serviceName];
+    const expectedApiKey = process.env[envVarName];
+
+    if (!expectedApiKey) {
+      console.error(`${envVarName} no configurada`);
+      return jsonError('Configuracion de API interna no disponible', 500);
+    }
+
+    if (!safeCompareApiKeys(receivedApiKey, expectedApiKey)) {
+      return jsonError('No autorizado', 401);
+    }
+
+    return null;
+  }
+
+  const configuredAllowedServices = getConfiguredServiceKeys(allowedServices);
+
+  if (configuredAllowedServices.length === 0) {
+    console.error(
+      `Ninguna API key interna configurada para: ${allowedServices.join(', ')}`
+    );
     return jsonError('Configuracion de API interna no disponible', 500);
   }
 
-  if (!safeCompareApiKeys(receivedApiKey, expectedApiKey)) {
-    return jsonError('No autorizado', 401);
+  const matchedAllowedService = configuredAllowedServices.find((service) =>
+    safeCompareApiKeys(receivedApiKey, service.apiKey)
+  );
+
+  if (matchedAllowedService) {
+    return null;
   }
 
-  return null;
+  const matchedKnownService = getConfiguredServiceKeys().find((service) =>
+    safeCompareApiKeys(receivedApiKey, service.apiKey)
+  );
+
+  if (matchedKnownService) {
+    return jsonError('Servicio no autorizado', 403);
+  }
+
+  return jsonError('No autorizado', 401);
 }
