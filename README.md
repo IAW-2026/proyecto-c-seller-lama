@@ -55,7 +55,7 @@ La aplicación fue desarrollada utilizando Next.js, TypeScript, Clerk para auten
 
 ## 5. Seguridad de APIs
 
-La seguridad de usuarios humanos usa sesiones de Clerk y roles en `publicMetadata.roles`. La comunicacion servidor-a-servidor usa Clerk Machine-to-Machine con JWT en `Authorization: Bearer <token>`.
+La seguridad de usuarios humanos usa sesiones de Clerk y roles en `publicMetadata.roles`. La comunicacion servidor-a-servidor usa API keys internas por servicio. El header recomendado es `x-api-key`; tambien se aceptan `X-Internal-Api-Key` y `Authorization: Bearer <key>`.
 
 Ver la matriz de endpoints, variables y pasos de configuracion en `docs/api-security.md`.
 

@@ -21,7 +21,7 @@ Helpers principales:
 - `requireRole(role)`: exige sesion y que el usuario tenga el rol pedido.
 - `requireVendedor()`: exige rol `vendedor`.
 - `requireSuperAdmin()`: exige rol `super_admin`.
-- `requireServiceApiKey(request, allowedServices)`: valida llamadas internas entre apps usando `x-service-name` y `x-api-key`.
+- `requireServiceApiKey(request, allowedServices)`: valida llamadas internas entre apps usando API keys internas.
 - `jsonError(message, status)`: devuelve errores JSON con formato consistente.
 
 Tambien existe `lib/api-auth.ts`, que reexporta esos helpers para mantener el estilo de imports del proyecto.
@@ -32,12 +32,22 @@ Las aplicaciones externas del marketplace deben autenticarse como servicio.
 
 Estas keys son secretos de servidor. No deben enviarse desde componentes client-side ni quedar expuestas en el navegador.
 
-Headers requeridos:
+Headers recomendados:
 
 ```http
 x-service-name: buyer | shipping | payments | control-plane | analytics
 x-api-key: <key correspondiente al servicio>
 ```
+
+Por compatibilidad, tambien se acepta enviar solo la key en cualquiera de estos headers:
+
+```http
+x-api-key: <key>
+X-Internal-Api-Key: <key>
+Authorization: Bearer <key>
+```
+
+Si no se envia `x-service-name`, la API infiere el servicio comparando la key recibida contra las variables de entorno permitidas para ese endpoint. Por ejemplo, `ANALYTICS_API_KEY` puede consultar `GET /api/productos` y `GET /api/ordenes-ventas`, pero no puede crear ordenes con `POST /api/ordenes-ventas`.
 
 Variables de entorno:
 
@@ -51,10 +61,10 @@ ANALYTICS_API_KEY=
 
 Reglas aplicadas por `requireServiceApiKey(request, allowedServices)`:
 
-- devuelve `401` si falta `x-service-name` o `x-api-key`;
+- devuelve `401` si falta una API key interna;
 - devuelve `401` si `x-service-name` no corresponde a un servicio conocido;
 - devuelve `403` si el servicio existe, pero no esta permitido para ese endpoint;
-- devuelve `500` si falta configurar la variable de entorno del servicio permitido;
+- devuelve `500` si falta configurar la variable de entorno del servicio indicado, o si no hay ninguna key configurada para los servicios permitidos cuando se intenta inferir el servicio;
 - compara la key recibida contra la key esperada usando hash SHA-256 y `timingSafeEqual`.
 
 ## Permisos por endpoint
@@ -182,8 +192,7 @@ Si alguien llama una API manualmente desde Postman o desde otro cliente, igual d
 Listar productos desde Buyer:
 
 ```bash
-curl -H "x-service-name: buyer" \
-  -H "x-api-key: $BUYER_API_KEY" \
+curl -H "x-api-key: $BUYER_API_KEY" \
   "https://proyecto-c-seller-lama.vercel.app/api/productos"
 ```
 
@@ -192,7 +201,6 @@ Crear orden desde Buyer:
 ```bash
 curl -X POST "https://proyecto-c-seller-lama.vercel.app/api/ordenes-ventas" \
   -H "content-type: application/json" \
-  -H "x-service-name: buyer" \
   -H "x-api-key: $BUYER_API_KEY" \
   -d '{"orden_id":"ORD-123","comprador_id":"user_123","items":[{"producto_id":"producto_123","precio_unitario":1000}],"precio_total":1000,"direccion_envio":"Calle 123"}'
 ```
@@ -202,7 +210,6 @@ Actualizar estado de envio desde Shipping:
 ```bash
 curl -X PATCH "https://proyecto-c-seller-lama.vercel.app/api/ordenes-ventas/ORD-123/estado-envio" \
   -H "content-type: application/json" \
-  -H "x-service-name: shipping" \
   -H "x-api-key: $SHIPPING_API_KEY" \
   -d '{"estado_envio":"despachado","envio_id":"ENV-123","codigo_seguimiento":"TRACK-123"}'
 ```
@@ -212,7 +219,6 @@ Actualizar estado de pago desde Payments:
 ```bash
 curl -X PATCH "https://proyecto-c-seller-lama.vercel.app/api/ordenes-ventas/ORD-123/estado-pago" \
   -H "content-type: application/json" \
-  -H "x-service-name: payments" \
   -H "x-api-key: $PAYMENTS_API_KEY" \
   -d '{"estado_pago":"aprobado","pago_id":"PAY-123"}'
 ```
@@ -220,7 +226,6 @@ curl -X PATCH "https://proyecto-c-seller-lama.vercel.app/api/ordenes-ventas/ORD-
 Listar vendedores desde Analytics:
 
 ```bash
-curl -H "x-service-name: analytics" \
-  -H "x-api-key: $ANALYTICS_API_KEY" \
+curl -H "x-api-key: $ANALYTICS_API_KEY" \
   "https://proyecto-c-seller-lama.vercel.app/api/vendedores"
 ```
