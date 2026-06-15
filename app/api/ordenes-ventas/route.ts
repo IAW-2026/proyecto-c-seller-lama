@@ -7,12 +7,13 @@ import { isNonEmptyString, isNumber, jsonError, parseJson } from '@/app/api/_uti
 const DEFAULT_PAGE_SIZE = 10;
 
 type OrdenItemRecord = {
+  orden_id: string;
   producto_id: string;
   precio_unitario: number;
-  producto?: ProductoOrdenRecord | ProductoOrdenRecord[] | null;
 };
 
 type OrdenRecord = {
+  orden_id: string;
   nro_orden: string;
   clerk_user_id: string;
   total: number;
@@ -22,10 +23,10 @@ type OrdenRecord = {
   estado_envio: string;
   fecha_creacion: string;
   fecha_actualizacion: string;
-  orden_item: OrdenItemRecord[] | null;
 };
 
 type ProductoOrdenRecord = {
+  producto_id: string;
   clerk_user_id: string;
   titulo?: string | null;
   imagenes?: string[] | null;
@@ -42,20 +43,22 @@ const normalizeString = (value: string | null) => {
   return trimmed ? trimmed : undefined;
 };
 
-const getProductoData = (producto: OrdenItemRecord['producto']) =>
-  Array.isArray(producto) ? producto[0] : producto;
-
-const mapOrdenResponse = (orden: OrdenRecord) => {
-  const vendedorId = (orden.orden_item || []).reduce<string | null>(
+const mapOrdenResponse = (
+  orden: OrdenRecord,
+  ordenItemsByOrdenId: Map<string, OrdenItemRecord[]>,
+  productosById: Map<string, ProductoOrdenRecord>
+) => {
+  const ordenItems = ordenItemsByOrdenId.get(orden.orden_id) || [];
+  const vendedorId = ordenItems.reduce<string | null>(
     (current, item) => {
       if (current) return current;
-      return getProductoData(item.producto)?.clerk_user_id ?? null;
+      return productosById.get(item.producto_id)?.clerk_user_id ?? null;
     },
     null
   );
 
-  const items = (orden.orden_item || []).map((item) => {
-    const producto = getProductoData(item.producto);
+  const items = ordenItems.map((item) => {
+    const producto = productosById.get(item.producto_id);
 
     return {
       producto_id: item.producto_id,
@@ -105,7 +108,8 @@ const isValidItem = (value: OrdenItemInput) =>
   isNumber(value.precio_unitario) &&
   value.precio_unitario >= 0;
 
-const buildOrdenListSelect = (filterByVendedor: boolean) => `
+const ordenListSelect = `
+  orden_id,
   nro_orden,
   clerk_user_id,
   total,
@@ -114,16 +118,20 @@ const buildOrdenListSelect = (filterByVendedor: boolean) => `
   estado_envio,
   direccion_envio,
   fecha_creacion,
-  fecha_actualizacion,
-  orden_item${filterByVendedor ? '!inner' : ''} (
-    producto_id,
-    precio_unitario,
-    producto${filterByVendedor ? '!inner' : ''} (
-      clerk_user_id,
-      titulo,
-      imagenes
-    )
-  )
+  fecha_actualizacion
+`;
+
+const ordenItemListSelect = `
+  orden_id,
+  producto_id,
+  precio_unitario
+`;
+
+const productoListSelect = `
+  producto_id,
+  clerk_user_id,
+  titulo,
+  imagenes
 `;
 
 /*
@@ -151,17 +159,64 @@ export async function GET(request: NextRequest) {
   );
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+  let ordenIdsByVendedor: string[] | null = null;
+
+  if (vendedorId) {
+    const { data: productosVendedor, error: productosVendedorError } =
+      await supabase
+        .from('producto')
+        .select('producto_id')
+        .eq('clerk_user_id', vendedorId);
+
+    if (productosVendedorError) {
+      console.error(
+        'Error real al listar ordenes de venta: no se pudieron obtener productos del vendedor',
+        productosVendedorError
+      );
+      return jsonError('No se pudieron obtener las ordenes', 500);
+    }
+
+    const productoIdsVendedor = (productosVendedor || []).map(
+      (producto) => producto.producto_id
+    );
+
+    if (productoIdsVendedor.length === 0) {
+      return NextResponse.json({ items: [], total: 0, page, pageSize }, { status: 200 });
+    }
+
+    const { data: ordenItemsVendedor, error: ordenItemsVendedorError } =
+      await supabase
+        .from('orden_item')
+        .select('orden_id')
+        .in('producto_id', productoIdsVendedor);
+
+    if (ordenItemsVendedorError) {
+      console.error(
+        'Error real al listar ordenes de venta: no se pudieron obtener orden_items del vendedor',
+        ordenItemsVendedorError
+      );
+      return jsonError('No se pudieron obtener las ordenes', 500);
+    }
+
+    ordenIdsByVendedor = Array.from(
+      new Set((ordenItemsVendedor || []).map((item) => item.orden_id))
+    );
+
+    if (ordenIdsByVendedor.length === 0) {
+      return NextResponse.json({ items: [], total: 0, page, pageSize }, { status: 200 });
+    }
+  }
 
   let query = supabase
     .from('orden')
-    .select(buildOrdenListSelect(Boolean(vendedorId)), { count: 'exact' });
+    .select(ordenListSelect, { count: 'exact' });
 
   if (compradorId) {
     query = query.eq('clerk_user_id', compradorId);
   }
 
-  if (vendedorId) {
-    query = query.eq('orden_item.producto.clerk_user_id', vendedorId);
+  if (ordenIdsByVendedor) {
+    query = query.in('orden_id', ordenIdsByVendedor);
   }
 
   if (estadoGeneral) {
@@ -181,12 +236,79 @@ export async function GET(request: NextRequest) {
     .range(from, to);
 
   if (error) {
-    console.error('Error al listar ordenes de venta', error);
+    console.error(
+      'Error real al listar ordenes de venta: no se pudieron obtener ordenes',
+      error
+    );
     return jsonError('No se pudieron obtener las ordenes', 500);
   }
 
   const ordenes = (data || []) as unknown as OrdenRecord[];
-  const items = ordenes.map(mapOrdenResponse);
+
+  if (ordenes.length === 0) {
+    return NextResponse.json(
+      {
+        items: [],
+        total: count || 0,
+        page,
+        pageSize,
+      },
+      { status: 200 }
+    );
+  }
+
+  const ordenIds = ordenes.map((orden) => orden.orden_id);
+  const { data: ordenItemsData, error: ordenItemsError } = await supabase
+    .from('orden_item')
+    .select(ordenItemListSelect)
+    .in('orden_id', ordenIds);
+
+  if (ordenItemsError) {
+    console.error(
+      'Error real al listar ordenes de venta: no se pudieron obtener orden_items',
+      ordenItemsError
+    );
+    return jsonError('No se pudieron obtener las ordenes', 500);
+  }
+
+  const ordenItems = (ordenItemsData || []) as unknown as OrdenItemRecord[];
+  const productoIds = Array.from(
+    new Set(ordenItems.map((item) => item.producto_id))
+  );
+  let productos: ProductoOrdenRecord[] = [];
+
+  if (productoIds.length > 0) {
+    const { data: productosData, error: productosError } = await supabase
+      .from('producto')
+      .select(productoListSelect)
+      .in('producto_id', productoIds);
+
+    if (productosError) {
+      console.error(
+        'Error real al listar ordenes de venta: no se pudieron obtener productos',
+        productosError
+      );
+      return jsonError('No se pudieron obtener las ordenes', 500);
+    }
+
+    productos = (productosData || []) as unknown as ProductoOrdenRecord[];
+  }
+
+  const ordenItemsByOrdenId = ordenItems.reduce((map, item) => {
+    const items = map.get(item.orden_id) || [];
+    items.push(item);
+    map.set(item.orden_id, items);
+    return map;
+  }, new Map<string, OrdenItemRecord[]>());
+
+  const productosById = productos.reduce((map, producto) => {
+    map.set(producto.producto_id, producto);
+    return map;
+  }, new Map<string, ProductoOrdenRecord>());
+
+  const items = ordenes.map((orden) =>
+    mapOrdenResponse(orden, ordenItemsByOrdenId, productosById)
+  );
 
   return NextResponse.json(
     {
