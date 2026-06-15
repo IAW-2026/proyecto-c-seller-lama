@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireServiceApiKey } from '@/lib/api-auth';
 import type { Producto } from '@/types';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 
@@ -18,6 +19,13 @@ const mapProductoResponse = (producto: Producto) => ({
 
 /*Endpoint para obtener los detalles de múltiples productos por sus IDs */
 export async function GET(request: NextRequest) {
+  const authError = requireServiceApiKey(request, [
+    'buyer',
+    'control-plane',
+    'analytics',
+  ]);
+  if (authError) return authError;
+
   const { searchParams } = request.nextUrl;
   const ids = parseIds(searchParams.get('ids'));
 

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireM2MFrom } from '@/lib/api-auth';
+import { requireServiceApiKey } from '@/lib/api-auth';
 import {
   isEstadoPago,
   isNonEmptyString,
@@ -8,8 +8,6 @@ import {
   parseJson,
   type EstadoPago,
 } from '@/app/api/_utils';
-
-const PAYMENTS_WRITE_MACHINES = ['payments'] as const;
 
 type EstadoPagoInput = {
   estado_pago: EstadoPago;
@@ -24,8 +22,8 @@ export async function PATCH(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
-  const authResult = await requireM2MFrom(request, PAYMENTS_WRITE_MACHINES);
-  if (!authResult.ok) return authResult.response;
+  const authError = requireServiceApiKey(request, ['payments']);
+  if (authError) return authError;
 
   const params = await props.params;
   const { orden_id } = params;

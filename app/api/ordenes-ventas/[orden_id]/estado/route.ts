@@ -1,22 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireM2MFrom } from '@/lib/api-auth';
+import { requireServiceApiKey } from '@/lib/api-auth';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
-
-const ORDER_STATUS_READ_MACHINES = [
-  'buyer',
-  'shipping',
-  'payments',
-  'control_plane',
-] as const;
 
 /*Endpoint para obtener el estado de una orden de venta */
 export async function GET(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
-  const authResult = await requireM2MFrom(request, ORDER_STATUS_READ_MACHINES);
-  if (!authResult.ok) return authResult.response;
+  const authError = requireServiceApiKey(request, [
+    'buyer',
+    'shipping',
+    'payments',
+    'control-plane',
+    'analytics',
+  ]);
+  if (authError) return authError;
 
   const params = await props.params;
   const { orden_id } = params;

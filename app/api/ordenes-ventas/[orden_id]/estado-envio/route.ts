@@ -1,10 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireM2MFrom } from '@/lib/api-auth';
+import { requireServiceApiKey } from '@/lib/api-auth';
 import { ESTADO_ENVIO, ESTADO_GENERAL } from '@/types/orden';
 import { isEstadoEnvio, isNonEmptyString, jsonError, parseJson, type EstadoEnvio } from '@/app/api/_utils';
-
-const SHIPPING_WRITE_MACHINES = ['shipping'] as const;
 
 type EstadoEnvioInput = {
   estado_envio: EstadoEnvio;
@@ -17,8 +15,8 @@ type EstadoEnvioInput = {
 Endpoint para actualizar el estado de envío de una orden de venta específica por su ID.
 */
 export async function PATCH(request: NextRequest, props: { params: Promise<{ orden_id: string }> }) {
-  const authResult = await requireM2MFrom(request, SHIPPING_WRITE_MACHINES);
-  if (!authResult.ok) return authResult.response;
+  const authError = requireServiceApiKey(request, ['shipping']);
+  if (authError) return authError;
 
   const params = await props.params;
   const { orden_id } = params;
