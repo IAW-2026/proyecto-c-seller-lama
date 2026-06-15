@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireInternalApiKey } from '@/lib/api-auth';
+import { requireM2MFrom } from '@/lib/api-auth';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
+
+const ORDER_DETAIL_MACHINES = ['buyer', 'control_plane'] as const;
 
 type ProductoOrdenRecord = {
   clerk_user_id: string;
@@ -95,8 +97,8 @@ export async function GET(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
-  const authError = requireInternalApiKey(request);
-  if (authError) return authError;
+  const authResult = await requireM2MFrom(request, ORDER_DETAIL_MACHINES);
+  if (!authResult.ok) return authResult.response;
 
   const params = await props.params;
   const { orden_id } = params;

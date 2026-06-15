@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireInternalApiKey } from '@/lib/api-auth';
+import { requireM2MFrom } from '@/lib/api-auth';
 import { isNonEmptyString, jsonError, parseJson } from '@/app/api/_utils';
+
+const SELLER_SETTLEMENT_MACHINES = ['control_plane'] as const;
 
 type LiquidacionInput = {
   fecha_actualizacion?: string;
@@ -12,8 +14,8 @@ export async function PATCH(
   request: NextRequest,
   props: { params: Promise<{ orden_id: string }> }
 ) {
-  const authError = requireInternalApiKey(request);
-  if (authError) return authError;
+  const authResult = await requireM2MFrom(request, SELLER_SETTLEMENT_MACHINES);
+  if (!authResult.ok) return authResult.response;
 
   const params = await props.params;
   const { orden_id } = params;

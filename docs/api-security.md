@@ -1,206 +1,141 @@
 # Seguridad de APIs
 
-Este documento resume como se protegen las APIs y acciones del servidor en la Seller App.
+Este documento resume como se protegen las APIs de Seller App.
 
-La idea principal es separar la seguridad real de la UI. El Navbar puede ocultar o mostrar links segun el rol, pero eso no protege una ruta. La proteccion importante esta en el servidor: route handlers, server actions, server components y proxy.
+La regla principal es separar autenticacion humana de autenticacion app-to-app. Ocultar links o botones en la UI mejora la experiencia, pero no protege datos ni mutaciones. La proteccion real vive en route handlers, server actions, server components y `proxy.ts`.
 
-## Roles
+## Modelo de autenticacion
 
-Los roles vienen de Clerk, en `publicMetadata.roles`.
+Usuarios humanos:
 
-Roles usados:
+- Usan sesion de Clerk.
+- Los roles se leen desde `publicMetadata.roles`.
+- Roles actuales: `vendedor` y `super_admin`.
+- Los helpers principales son `requireAuthUser()`, `requireRole()`, `requireVendedor()` y `requireSuperAdmin()`.
 
-- `vendedor`: puede gestionar sus propios productos y ventas.
-- `super_admin`: puede gestionar vendedores, productos y ordenes de forma global.
+Comunicacion app-to-app:
 
-Los helpers de API estan en `src/lib/api-auth.ts`.
+- Usa Clerk Machine-to-Machine con JWT.
+- Cada llamada interna debe enviar `Authorization: Bearer <m2m_jwt>`.
+- Seller valida el JWT con `verifyToken` del SDK oficial de Clerk, exportado por `@clerk/nextjs/server`.
+- El token debe tener un `sub` de maquina de Clerk, con prefijo `mch_`.
+- Seller mapea ese `sub` contra las variables `CLERK_M2M_*_MACHINE_ID`.
+- `x-api-key` propio fue eliminado de los route handlers internos.
 
-Helpers principales:
+Lectura publica:
 
-- `requireAuthUser()`: exige sesion de Clerk y devuelve `userId`.
-- `requireRole(role)`: exige sesion y que el usuario tenga el rol pedido.
-- `requireVendedor()`: exige rol `vendedor`.
-- `requireSuperAdmin()`: exige rol `super_admin`.
-- `requireInternalApiKey(request)`: valida el header `x-api-key` contra `INTERNAL_API_KEY`.
-- `jsonError(message, status)`: devuelve errores JSON con formato consistente.
+- El catalogo publico queda abierto para Buyer, SEO y navegacion anonima.
+- Estos endpoints solo devuelven datos publicables, por ejemplo productos con `estado_publicacion = 'activa'`.
+- Si mas adelante se decide cerrar catalogo entre apps, se puede cambiar a `requireHumanOrM2M()` sin tocar la logica de filtros/paginacion.
 
-Tambien existe `lib/api-auth.ts`, que reexporta esos helpers para mantener el estilo de imports del proyecto.
+## Helpers
 
-## Endpoints publicos
+Los helpers estan en `src/lib/api-auth.ts` y se reexportan desde `lib/api-auth.ts`.
 
-Estos endpoints quedan publicos porque los consume Buyer o el catalogo:
+- `jsonError(message, status)`: respuesta JSON consistente.
+- `requireM2M(request)`: exige `Authorization: Bearer`, valida el JWT de Clerk y exige sujeto de maquina `mch_`.
+- `requireM2MFrom(request, allowedMachines)`: valida M2M y ademas exige que la maquina este permitida.
+- `requireHumanOrM2M(request, options)`: acepta sesion humana o M2M, util para endpoints mixtos futuros.
 
-- `GET /api/productos`
-- `GET /api/productos/[producto_id]`
-- `GET /api/productos/bulk`
-- `GET /api/categorias-productos`
-- `GET /api/vendedores`
+`requireM2MFrom()` acepta nombres logicos (`buyer`, `shipping`, `payments`, `control_plane`, `analytics`) o IDs directos `mch_...`. Para nombres logicos, el ID real viene del entorno.
 
-Aunque son publicos, no devuelven cualquier dato. Los productos publicos se filtran por `estado_publicacion = 'activa'`, por lo que no se exponen productos `inactiva` o `vendida`. Tambien se validan parametros de busqueda, filtros y paginacion.
+Si `CLERK_JWT_KEY` esta configurado, la validacion de firma puede ser local. Si no esta configurado, `verifyToken` usa `CLERK_SECRET_KEY` y puede consultar JWKS de Clerk segun el comportamiento del SDK. En produccion se recomienda configurar `CLERK_JWT_KEY` y usar M2M JWT de corta vida.
 
-Consecuencia importante: si un producto cambia a `vendida` o `inactiva`, deja de aparecer para Buyer aunque siga existiendo en la base.
+Esta implementacion esta enfocada en M2M JWT. No acepta tokens M2M opacos (`mt_...`) en `Authorization`; si se eligen tokens opacos, hay que cambiar a la verificacion online de Clerk para machine tokens.
 
-## Endpoints de vendedor
+## Matriz de endpoints
 
-Estos endpoints requieren sesion y rol `vendedor`:
+| Endpoint | Uso | Proteccion |
+| --- | --- | --- |
+| `GET /api/productos` | Catalogo publico con filtros y paginacion | Publico |
+| `GET /api/productos/[producto_id]` | Detalle publico de producto activo | Publico |
+| `GET /api/productos/bulk` | Lectura publica por IDs de productos activos | Publico |
+| `GET /api/categorias-productos` | Categorias publicas | Publico |
+| `GET /api/vendedores` | Vendedores activos para filtros/listados publicos | Publico |
+| `POST /api/webhooks/clerk` | Webhook de Clerk | Firma Svix con `CLERK_WEBHOOK_SECRET` |
+| `POST /api/ordenes/[orden_id]/despachar` | Accion del vendedor autenticado | Clerk session + rol `vendedor` |
+| `GET /api/ordenes/[orden_id]/envio` | Consulta de envio desde pantalla de vendedor | Clerk session + rol `vendedor` |
+| `GET /api/ordenes-ventas` | Buyer lista ordenes; Control Plane lee globalmente | M2M: `buyer`, `control_plane` |
+| `POST /api/ordenes-ventas` | Buyer crea orden | M2M: `buyer` |
+| `GET /api/ordenes-ventas/[orden_id]` | Buyer/Control Plane consultan detalle | M2M: `buyer`, `control_plane` |
+| `GET /api/ordenes-ventas/[orden_id]/estado` | Estado para Buyer, Shipping, Payments o Control Plane | M2M: `buyer`, `shipping`, `payments`, `control_plane` |
+| `PATCH /api/ordenes-ventas/[orden_id]/estado-pago` | Payments actualiza pago | M2M: `payments` |
+| `PATCH /api/ordenes-ventas/[orden_id]/estado-envio` | Shipping actualiza envio | M2M: `shipping` |
+| `PATCH /api/ordenes/[orden_id]/liquidacion-vendedor` | Control Plane registra liquidacion | M2M: `control_plane` |
 
-- `POST /api/ordenes/[orden_id]/despachar`
-- `GET /api/ordenes/[orden_id]/envio`
+Analytics no tiene hoy un endpoint interno dedicado en Seller App. Puede leer los endpoints publicos de catalogo como cualquier cliente. Si necesita metricas de ordenes, conviene crear un endpoint especifico que devuelva datos agregados o listados minimos y protegerlo con `requireM2MFrom(request, ['analytics'])`.
 
-Ademas, las server actions de productos tambien validan vendedor:
-
-- crear producto
-- editar producto
-- eliminar producto
-- crear categoria desde el formulario de producto
-
-Reglas aplicadas:
-
-- Se obtiene el `userId` desde Clerk.
-- No se confia en un `clerk_user_id` enviado por el cliente.
-- Las consultas se filtran por el vendedor dueno del recurso.
-- Si el recurso existe pero pertenece a otro vendedor, se devuelve `403`.
-- Si el vendedor esta inactivo, no puede operar.
-
-
-## Acciones de administrador
-
-Las acciones administrativas requieren rol `super_admin`.
-
-Acciones protegidas:
-
-- eliminar producto
-- eliminar orden
-- desactivar vendedor
-- activar vendedor
-- editar vendedor
-- editar producto desde admin
-- editar orden
-
-El administrador puede operar globalmente, por eso no se filtra por `clerk_user_id` del vendedor. La validacion clave es el rol `super_admin`.
-
-Consecuencia importante: si un usuario sin rol admin intenta llamar una action admin, la validacion del servidor lo corta antes de modificar datos.
-
-## Endpoints internos entre apps
-
-Estos endpoints no usan Clerk de usuario porque los consumen otras aplicaciones del marketplace de servidor a servidor, como Buyer, Shipping o Payments.
-
-Se protegen con el header:
-
-```http
-x-api-key: <valor de INTERNAL_API_KEY>
-```
-
-Endpoints internos protegidos:
-
-- `GET /api/ordenes-ventas`
-- `POST /api/ordenes-ventas`
-- `GET /api/ordenes-ventas/[orden_id]`
-- `GET /api/ordenes-ventas/[orden_id]/estado`
-- `PATCH /api/ordenes-ventas/[orden_id]/estado-pago`
-- `PATCH /api/ordenes-ventas/[orden_id]/estado-envio`
-- `PATCH /api/ordenes/[orden_id]/liquidacion-vendedor`
-
-La variable esta documentada en `.env.example`:
+## Variables de entorno
 
 ```env
-INTERNAL_API_KEY=
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+CLERK_WEBHOOK_SECRET=
+CLERK_JWT_KEY=
+CLERK_AUTHORIZED_PARTIES=
+
+CLERK_M2M_BUYER_MACHINE_ID=
+CLERK_M2M_SHIPPING_MACHINE_ID=
+CLERK_M2M_PAYMENTS_MACHINE_ID=
+CLERK_M2M_CONTROL_PLANE_MACHINE_ID=
+CLERK_M2M_ANALYTICS_MACHINE_ID=
 ```
 
-Consecuencia importante: si falta el header, o si el valor no coincide, el endpoint devuelve `401`. Si la variable no esta configurada en el servidor, devuelve `500` porque la app no esta preparada para aceptar llamadas internas.
+`CLERK_JWT_KEY` es el PEM public key de Clerk para verificacion local. Si se guarda en un `.env`, puede usar saltos de linea escapados como `\n`.
 
-## Validaciones y errores
+`CLERK_AUTHORIZED_PARTIES` es opcional. Usarlo solo si los tokens incluyen `azp` y se quiere validar una lista de origenes/parties esperadas, separados por coma.
 
-Las APIs validan:
+## Configuracion en Clerk
 
-- sesion, rol o API key segun el tipo de endpoint;
-- parametros de URL;
-- body JSON;
-- estados permitidos;
-- pertenencia del recurso;
-- existencia del recurso.
+1. Crear una machine por app consumidora: Buyer, Shipping, Payments, Control Plane y Analytics.
+2. Crear o identificar la machine de Seller App como recurso receptor.
+3. Configurar en Clerk que cada machine llamadora tenga scope/acceso hacia Seller App segun corresponda.
+4. Emitir tokens M2M en formato `jwt` para las apps llamadoras, con TTL corto.
+5. Copiar los IDs `mch_...` de cada machine llamadora en las variables `CLERK_M2M_*_MACHINE_ID` de Seller.
+6. Configurar `CLERK_JWT_KEY` en Seller para validar M2M JWT localmente cuando sea posible.
+7. Rotar/revocar tokens desde Clerk; no crear secretos compartidos propios en Seller.
 
-Codigos usados:
+## Ejemplos
 
-- `400`: datos invalidos o incompletos.
-- `401`: no autenticado o falta API key interna.
-- `403`: autenticado, pero sin permiso o sin pertenencia sobre el recurso.
-- `404`: recurso no encontrado.
-- `500`: error interno del servidor.
+Crear orden desde Buyer:
 
-Los errores internos de Supabase o Clerk se registran con `console.error`, pero no se devuelven completos al cliente. El cliente recibe mensajes genericos para no exponer informacion sensible.
+```bash
+curl -X POST "https://seller.example.com/api/ordenes-ventas" \
+  -H "Authorization: Bearer $BUYER_M2M_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"orden_id":"ord_123","comprador_id":"user_123","items":[{"producto_id":"prod_1","precio_unitario":100}],"precio_total":100,"direccion_envio":"Calle 123"}'
+```
 
-## Proxy y paginas privadas
+Actualizar estado de pago desde Payments:
 
-El `proxy.ts` protege paginas privadas:
+```bash
+curl -X PATCH "https://seller.example.com/api/ordenes-ventas/ord_123/estado-pago" \
+  -H "Authorization: Bearer $PAYMENTS_M2M_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"estado_pago":"aprobado","pago_id":"pay_123"}'
+```
 
-- `/productos`
-- `/productos/(.*)`
-- `/ventas`
-- `/ventas/(.*)`
-- `/admin`
-- `/admin/(.*)`
+Actualizar estado de envio desde Shipping:
 
-Si no hay sesion, redirige a `/sign-in`.
+```bash
+curl -X PATCH "https://seller.example.com/api/ordenes-ventas/ord_123/estado-envio" \
+  -H "Authorization: Bearer $SHIPPING_M2M_JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"estado_envio":"despachado","codigo_seguimiento":"TRACK123"}'
+```
 
-El proxy no bloquea los endpoints publicos ni las llamadas internas con `x-api-key`. Las APIs pasan por el proxy, pero la autorizacion real se decide dentro de cada route handler.
+## Errores
 
-## Diferencia entre UI y seguridad real
+- `401`: falta `Authorization: Bearer`, el header esta mal formado o el token no valida.
+- `403`: el token es valido, pero no es una machine permitida para ese endpoint, o el usuario humano no tiene rol suficiente.
+- `400`: parametros o body invalidos.
+- `404`: recurso inexistente.
+- `500`: configuracion faltante o error interno.
 
-La UI puede:
+Los detalles de Clerk, Supabase o fallas internas se registran en servidor con `console.error`, pero no se devuelven al cliente.
 
-- ocultar links;
-- deshabilitar botones;
-- mostrar mensajes;
-- mejorar la experiencia del usuario.
+## Por que se elimina x-api-key
 
-Pero la seguridad real esta en:
+Una API key propia compartida no identifica que app llama, no permite permisos por caller, se rota con mas friccion y suele terminar copiada en varios servicios. Clerk M2M da identidad por machine, tokens con expiracion, revocacion centralizada y validacion estandar con JWT.
 
-- server components de paginas privadas;
-- server actions;
-- route handlers;
-- validacion de roles;
-- validacion de pertenencia por `clerk_user_id`;
-- validacion de `x-api-key` para llamadas internas.
-
-Si alguien llama una API manualmente desde Postman o desde otro cliente, igual debe pasar esas validaciones.
-
-## Flujos importantes
-
-### Crear o editar producto
-
-1. El vendedor inicia sesion con Clerk.
-2. El servidor obtiene `userId`.
-3. Se exige rol `vendedor`.
-4. Se valida que el vendedor este activo.
-5. Al crear, se guarda `clerk_user_id = userId`.
-6. Al editar, se consulta el producto y se verifica que pertenezca a ese `userId`.
-
-### Despachar orden
-
-1. El vendedor inicia sesion.
-2. Se exige rol `vendedor`.
-3. Se verifica vendedor activo.
-4. Se busca la orden.
-5. Se valida que la orden tenga items de productos del vendedor.
-6. Si no pertenece al vendedor, se devuelve `403`.
-7. Si corresponde, se llama a Shipping y se actualiza el estado de envio.
-
-### Crear orden desde Buyer
-
-1. Buyer llama a Seller desde servidor.
-2. Envia `x-api-key`.
-3. Seller valida la API key interna.
-4. Seller valida body, productos y precios.
-5. Seller crea la orden y sus items.
-6. Seller marca los productos como `vendida`.
-
-### Actualizar pago o envio
-
-1. Payments o Shipping llama a Seller desde servidor.
-2. Envia `x-api-key`.
-3. Seller valida la API key interna.
-4. Seller valida el estado recibido.
-5. Seller actualiza la orden.
-6. El `estado_general` puede derivarse por logica de base de datos si existe un trigger.
-
+Mantener `x-api-key` solo como fallback temporal seria menos granular. En esta version los endpoints internos ya no lo aceptan.

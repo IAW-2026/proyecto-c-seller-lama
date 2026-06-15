@@ -86,18 +86,24 @@ export async function GET(request: NextRequest) {
   const categoria_id = normalizeString(searchParams.get('categoria_id'));
   const talle = normalizeString(searchParams.get('talle'));
   const genero = normalizeString(searchParams.get('genero'));
-  const sort = normalizeSort(searchParams.get('sort'));
+  const sortParam = normalizeString(searchParams.get('sort'));
+  const sort = normalizeSort(sortParam || null);
   const page = parsePositiveInt(searchParams.get('page'), 1);
   const pageSize = parsePositiveInt(
     searchParams.get('pageSize'),
     DEFAULT_PAGE_SIZE,
     MAX_PAGE_SIZE
   );
+  const hasFilters =
+    !!search || !!categoria_id || !!talle || !!genero || !!sortParam;
 
   let query = supabase
     .from('producto')
-    .select('*', { count: 'exact' })
-    .eq('estado_publicacion', 'activa');
+    .select('*', { count: 'exact' });
+
+  if (hasFilters) {
+    query = query.eq('estado_publicacion', 'activa');
+  }
 
   if (search) {
     query = query.or(buildSearchFilter(search));

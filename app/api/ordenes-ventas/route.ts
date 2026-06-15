@@ -1,10 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireInternalApiKey } from '@/lib/api-auth';
+import { requireM2MFrom } from '@/lib/api-auth';
 import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, isNumber, jsonError, parseJson } from '@/app/api/_utils';
 
 const DEFAULT_PAGE_SIZE = 10;
+const ORDER_READ_MACHINES = ['buyer', 'control_plane'] as const;
+const ORDER_CREATE_MACHINES = ['buyer'] as const;
 
 type OrdenItemRecord = {
   producto_id: string;
@@ -94,8 +96,8 @@ const ordenListSelect = `
 Endpoint para listar ordenes de venta de un comprador
 */
 export async function GET(request: NextRequest) {
-  const authError = requireInternalApiKey(request);
-  if (authError) return authError;
+  const authResult = await requireM2MFrom(request, ORDER_READ_MACHINES);
+  if (!authResult.ok) return authResult.response;
 
   const { searchParams } = request.nextUrl;
   const comprador_id = searchParams.get('comprador_id');
@@ -143,8 +145,8 @@ export async function GET(request: NextRequest) {
 Endpoint para crear una nueva orden de venta 
 */
 export async function POST(request: NextRequest) {
-  const authError = requireInternalApiKey(request);
-  if (authError) return authError;
+  const authResult = await requireM2MFrom(request, ORDER_CREATE_MACHINES);
+  if (!authResult.ok) return authResult.response;
 
   const { data, error } = await parseJson<OrdenCreateInput>(request);
 

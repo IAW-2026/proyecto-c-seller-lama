@@ -53,4 +53,10 @@ La aplicación permite a los vendedores publicar productos, administrar su catá
 El sistema se integra con otras aplicaciones del ecosistema Marketplace mediante APIs REST, permitiendo la comunicación con Buyer App, Payments App y Shipping App.
 La aplicación fue desarrollada utilizando Next.js, TypeScript, Clerk para autenticación, Supabase como base de datos PostgreSQL y desplegada en Vercel.
 
+## 5. Seguridad de APIs
+
+La seguridad de usuarios humanos usa sesiones de Clerk y roles en `publicMetadata.roles`. La comunicacion servidor-a-servidor usa Clerk Machine-to-Machine con JWT en `Authorization: Bearer <token>`.
+
+Ver la matriz de endpoints, variables y pasos de configuracion en `docs/api-security.md`.
+
 
