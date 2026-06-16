@@ -81,7 +81,7 @@ Estos endpoints exponen datos de catalogo filtrados para consumo entre aplicacio
 | `/api/productos/bulk` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/categorias-productos` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/vendedores` | `GET` | `control-plane`, `analytics` |
-| `/api/vendedores/[vendedor_id]/estado` | `PATCH` | `control-plane` |
+| `/api/vendedores/[clerk_user_id]/estado` | `PATCH` | `control-plane` |
 
 ### Ordenes entre apps
 
@@ -239,4 +239,14 @@ curl -X PATCH "https://proyecto-c-seller-lama.vercel.app/api/vendedores/user_123
   -H "content-type: application/json" \
   -H "x-api-key: $CONTROL_PLANE_API_KEY" \
   -d '{"activo":false}'
+```
+
+Respuesta:
+
+```json
+{
+  "clerk_user_id": "user_123",
+  "nombre_vendedor": "Nombre del vendedor",
+  "activo": false
+}
 ```

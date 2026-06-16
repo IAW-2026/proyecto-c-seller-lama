@@ -9,16 +9,16 @@ type VendedorEstadoInput = {
 
 export async function PATCH(
   request: NextRequest,
-  props: { params: Promise<{ vendedor_id: string }> }
+  props: { params: Promise<{ clerk_user_id: string }> }
 ) {
   const authError = requireInternalApiKey(request);
   if (authError) return authError;
 
   const params = await props.params;
-  const { vendedor_id } = params;
+  const { clerk_user_id } = params;
 
-  if (!isNonEmptyString(vendedor_id)) {
-    return jsonError('vendedor_id es requerido', 400);
+  if (!isNonEmptyString(clerk_user_id)) {
+    return jsonError('clerk_user_id es requerido', 400);
   }
 
   const { data, error } = await parseJson<Partial<VendedorEstadoInput>>(request);
@@ -31,8 +31,8 @@ export async function PATCH(
   const { data: updated, error: updateError } = await supabase
     .from('vendedor')
     .update({ activo: data.activo })
-    .eq('clerk_user_id', vendedor_id)
-    .select('clerk_user_id, nombre_vendedor, activo, fecha_actualizacion')
+    .eq('clerk_user_id', clerk_user_id)
+    .select('clerk_user_id, nombre_vendedor, activo')
     .maybeSingle();
 
   if (updateError) {
@@ -46,10 +46,9 @@ export async function PATCH(
 
   return NextResponse.json(
     {
-      vendedor_id: updated.clerk_user_id,
+      clerk_user_id: updated.clerk_user_id,
       nombre_vendedor: updated.nombre_vendedor,
       activo: updated.activo,
-      fecha_actualizacion: updated.fecha_actualizacion,
     },
     { status: 200 }
   );
