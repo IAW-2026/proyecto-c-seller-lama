@@ -81,6 +81,7 @@ Estos endpoints exponen datos de catalogo filtrados para consumo entre aplicacio
 | `/api/productos/bulk` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/categorias-productos` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/vendedores` | `GET` | `control-plane`, `analytics` |
+| `/api/vendedores/[clerk_user_id]` | `PATCH` | `control-plane` |
 | `/api/vendedores/[clerk_user_id]/estado` | `PATCH` | `control-plane` |
 
 ### Ordenes entre apps
@@ -249,4 +250,13 @@ Respuesta:
   "nombre_vendedor": "Nombre del vendedor",
   "activo": false
 }
+```
+
+Editar datos de vendedor desde Control Plane:
+
+```bash
+curl -X PATCH "https://proyecto-c-seller-lama.vercel.app/api/vendedores/user_123" \
+  -H "content-type: application/json" \
+  -H "x-api-key: $CONTROL_PLANE_API_KEY" \
+  -d '{"nombre_vendedor":"Nombre actualizado","email":"seller@example.com","activo":true}'
 ```
