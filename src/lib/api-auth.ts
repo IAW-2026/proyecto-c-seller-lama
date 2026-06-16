@@ -210,3 +210,24 @@ export function requireServiceApiKey(
 
   return jsonError('No autorizado', 401);
 }
+
+export function requireInternalApiKey(request: NextRequest | Request) {
+  const receivedApiKey = request.headers.get('x-api-key');
+
+  if (!receivedApiKey) {
+    return jsonError('No autorizado', 401);
+  }
+
+  const expectedApiKey = process.env.CONTROL_PLANE_API_KEY;
+
+  if (!expectedApiKey) {
+    console.error('CONTROL_PLANE_API_KEY no configurada');
+    return jsonError('Configuracion de API interna no disponible', 500);
+  }
+
+  if (!safeCompareApiKeys(receivedApiKey, expectedApiKey)) {
+    return jsonError('No autorizado', 401);
+  }
+
+  return null;
+}

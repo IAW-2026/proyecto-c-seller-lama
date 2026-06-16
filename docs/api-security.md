@@ -22,6 +22,7 @@ Helpers principales:
 - `requireVendedor()`: exige rol `vendedor`.
 - `requireSuperAdmin()`: exige rol `super_admin`.
 - `requireServiceApiKey(request, allowedServices)`: valida llamadas internas entre apps usando API keys internas.
+- `requireInternalApiKey(request)`: valida llamadas internas exclusivas de Control Plane usando `x-api-key`.
 - `jsonError(message, status)`: devuelve errores JSON con formato consistente.
 
 Tambien existe `lib/api-auth.ts`, que reexporta esos helpers para mantener el estilo de imports del proyecto.
@@ -80,6 +81,7 @@ Estos endpoints exponen datos de catalogo filtrados para consumo entre aplicacio
 | `/api/productos/bulk` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/categorias-productos` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/vendedores` | `GET` | `control-plane`, `analytics` |
+| `/api/vendedores/[vendedor_id]/estado` | `PATCH` | `control-plane` |
 
 ### Ordenes entre apps
 
@@ -228,4 +230,13 @@ Listar vendedores desde Analytics:
 ```bash
 curl -H "x-api-key: $ANALYTICS_API_KEY" \
   "https://proyecto-c-seller-lama.vercel.app/api/vendedores"
+```
+
+Activar o desactivar vendedor desde Control Plane:
+
+```bash
+curl -X PATCH "https://proyecto-c-seller-lama.vercel.app/api/vendedores/user_123/estado" \
+  -H "content-type: application/json" \
+  -H "x-api-key: $CONTROL_PLANE_API_KEY" \
+  -d '{"activo":false}'
 ```
