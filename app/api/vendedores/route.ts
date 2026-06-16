@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
   const authError = requireServiceApiKey(request, [
     'control-plane',
     'analytics',
+    'buyer',
   ]);
   if (authError) return authError;
 
