@@ -231,3 +231,12 @@ export function requireInternalApiKey(request: NextRequest | Request) {
 
   return null;
 }
+
+export function isControlPlaneApiKey(request: NextRequest | Request) {
+  const receivedApiKey = request.headers.get('x-api-key');
+  const expectedApiKey = process.env.CONTROL_PLANE_API_KEY;
+
+  if (!receivedApiKey || !expectedApiKey) return false;
+
+  return safeCompareApiKeys(receivedApiKey, expectedApiKey);
+}

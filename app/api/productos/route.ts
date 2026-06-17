@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireServiceApiKey } from '@/lib/api-auth';
+import { isControlPlaneApiKey, requireServiceApiKey } from '@/lib/api-auth';
+import { ESTADOS_PUBLICACION, type EstadoPublicacion } from '@/types/producto';
 import type { Producto, Vendedor } from '@/types';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 
@@ -30,6 +31,18 @@ const normalizeSort = (value: string | null) => {
   if (!value) return SORT_RECENT;
   if (value === SORT_PRICE_ASC || value === SORT_PRICE_DESC) return value;
   return SORT_RECENT;
+};
+
+const normalizeBoolean = (value: string | null) =>
+  value === 'true' || value === '1';
+
+const normalizeEstadoPublicacion = (
+  value: string | null
+): EstadoPublicacion | undefined => {
+  if (!value) return undefined;
+  return ESTADOS_PUBLICACION.includes(value as EstadoPublicacion)
+    ? (value as EstadoPublicacion)
+    : undefined;
 };
 
 const buildSearchFilter = (search: string) => {
@@ -94,6 +107,9 @@ export async function GET(request: NextRequest) {
   const categoria_id = normalizeString(searchParams.get('categoria_id'));
   const talle = normalizeString(searchParams.get('talle'));
   const genero = normalizeString(searchParams.get('genero'));
+  const estadoPublicacion = normalizeEstadoPublicacion(
+    searchParams.get('estado_publicacion')
+  );
   const sort = normalizeSort(searchParams.get('sort'));
   const page = parsePositiveInt(searchParams.get('page'), 1);
   const pageSize = parsePositiveInt(
@@ -101,11 +117,19 @@ export async function GET(request: NextRequest) {
     DEFAULT_PAGE_SIZE,
     MAX_PAGE_SIZE
   );
+  const canListAllStatuses =
+    normalizeBoolean(searchParams.get('include_all_statuses')) &&
+    isControlPlaneApiKey(request);
 
   let query = supabase
     .from('producto')
-    .select('*', { count: 'exact' })
-    .eq('estado_publicacion', 'activa');
+    .select('*', { count: 'exact' });
+
+  if (estadoPublicacion) {
+    query = query.eq('estado_publicacion', estadoPublicacion);
+  } else if (!canListAllStatuses) {
+    query = query.eq('estado_publicacion', 'activa');
+  }
 
   if (search) {
     query = query.or(buildSearchFilter(search));

@@ -199,6 +199,13 @@ curl -H "x-api-key: $BUYER_API_KEY" \
   "https://proyecto-c-seller-lama.vercel.app/api/productos"
 ```
 
+Listar productos desde Control Plane incluyendo todos los estados:
+
+```bash
+curl -H "x-api-key: $CONTROL_PLANE_API_KEY" \
+  "https://proyecto-c-seller-lama.vercel.app/api/productos?include_all_statuses=true"
+```
+
 Crear orden desde Buyer:
 
 ```bash
