@@ -43,8 +43,9 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('vendedor')
-    .select('clerk_user_id, nombre_vendedor', { count: 'exact' })
-    .eq('activo', true);
+    .select('clerk_user_id, nombre_vendedor, dni, email, telefono, activo', {
+      count: 'exact',
+    });
 
   if (isNonEmptyString(search)) {
     const searchTerm = `%${search}%`;
@@ -64,8 +65,13 @@ export async function GET(request: NextRequest) {
   }
 
   const items = (data || []).map((vendedor) => ({
+    clerk_user_id: vendedor.clerk_user_id,
     vendedor_id: vendedor.clerk_user_id,
     nombre_vendedor: vendedor.nombre_vendedor,
+    dni: vendedor.dni,
+    email: vendedor.email,
+    telefono: vendedor.telefono,
+    activo: vendedor.activo,
   }));
 
   return NextResponse.json(

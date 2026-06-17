@@ -80,7 +80,7 @@ Estos endpoints exponen datos de catalogo filtrados para consumo entre aplicacio
 | `/api/productos/[producto_id]` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/productos/bulk` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/categorias-productos` | `GET` | `buyer`, `control-plane`, `analytics` |
-| `/api/vendedores` | `GET` | `control-plane`, `analytics` |
+| `/api/vendedores` | `GET` | `buyer`, `control-plane`, `analytics` |
 | `/api/vendedores/[clerk_user_id]` | `PATCH` | `control-plane` |
 | `/api/vendedores/[clerk_user_id]/estado` | `PATCH` | `control-plane` |
 
@@ -230,7 +230,28 @@ Listar vendedores desde Analytics:
 
 ```bash
 curl -H "x-api-key: $ANALYTICS_API_KEY" \
-  "https://proyecto-c-seller-lama.vercel.app/api/vendedores"
+  "https://proyecto-c-seller-lama.vercel.app/api/vendedores?page=1&pageSize=10"
+```
+
+La respuesta incluye vendedores activos e inactivos. `vendedor_id` se mantiene como alias de `clerk_user_id` para compatibilidad.
+
+```json
+{
+  "items": [
+    {
+      "clerk_user_id": "user_123",
+      "vendedor_id": "user_123",
+      "nombre_vendedor": "Nombre del vendedor",
+      "dni": "12345678",
+      "email": "seller@example.com",
+      "telefono": "1122334455",
+      "activo": true
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 10
+}
 ```
 
 Activar o desactivar vendedor desde Control Plane:
