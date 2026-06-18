@@ -10,6 +10,7 @@ import { useProductoForm } from '@/hooks/useProductoForm';
 import { uploadProductImages } from '@/lib/supabase-products';
 import { validateProductForm } from '@/lib/product-utils';
 import { updateProductoAdmin } from '@/actions/adminActions';
+import { ProductAiAssistant } from '@/components/ai/ProductAiAssistant';
 import type { Producto, ProductFormData } from '@/types/producto';
 
 interface Categoria {
@@ -53,9 +54,14 @@ export function ProductoAdminEditForm({
     handleChange,
     handlePriceChange,
     setErrors,
+    setFormData,
   } = useProductoForm({
     initialData: initialFormData,
   });
+  const selectedCategoriaNombre =
+    categorias.find(
+      (categoria) => categoria.categoria_producto_id === formData.categoria_id
+    )?.nombre || '';
 
   const handleAddImages = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -157,6 +163,22 @@ export function ProductoAdminEditForm({
             onInputChange={handleChange}
             onPriceChange={handlePriceChange}
             errors={errors}
+          />
+
+          <ProductAiAssistant
+            formData={formData}
+            categoriaNombre={selectedCategoriaNombre}
+            onApplyTitle={(titulo) =>
+              setFormData((prev) => ({ ...prev, titulo }))
+            }
+            onApplyDescription={(descripcion) =>
+              setFormData((prev) => ({ ...prev, descripcion }))
+            }
+            onApplyField={(field, value) =>
+              setFormData(
+                (prev) => ({ ...prev, [field]: value }) as ProductFormData
+              )
+            }
           />
 
           <FormActions

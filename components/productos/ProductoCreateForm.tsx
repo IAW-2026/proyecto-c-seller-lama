@@ -20,6 +20,7 @@ import { ImageUpload } from './FormSections/ImageUpload';
 import { ProductFormFields } from './FormSections/ProductFormFields';
 import { FormActions } from './FormSections/FormActions';
 import { VendedorInactivoBanner } from '@/components/ui/VendedorInactivoBanner';
+import { ProductAiAssistant } from '@/components/ai/ProductAiAssistant';
 
 interface Categoria {
   categoria_producto_id: string;
@@ -54,6 +55,10 @@ export function ProductoCreateForm({
   const [isCategoriaModalOpen, setIsCategoriaModalOpen] = useState(false);
   const [categoriaNombre, setCategoriaNombre] = useState('');
   const [isCreatingCategoria, setIsCreatingCategoria] = useState(false);
+  const selectedCategoriaNombre =
+    localCategorias.find(
+      (categoria) => categoria.categoria_producto_id === formData.categoria_id
+    )?.nombre || '';
 
   const openCategoriaModal = () => {
     if (!vendedorActivo) {
@@ -236,6 +241,23 @@ export function ProductoCreateForm({
                 errors={errors}
                 onCreateCategory={openCategoriaModal}
                 disabled={!vendedorActivo}
+              />
+
+              <ProductAiAssistant
+                formData={formData}
+                categoriaNombre={selectedCategoriaNombre}
+                disabled={!vendedorActivo}
+                onApplyTitle={(titulo) =>
+                  setFormData((prev) => ({ ...prev, titulo }))
+                }
+                onApplyDescription={(descripcion) =>
+                  setFormData((prev) => ({ ...prev, descripcion }))
+                }
+                onApplyField={(field, value) =>
+                  setFormData(
+                    (prev) => ({ ...prev, [field]: value }) as ProductFormData
+                  )
+                }
               />
 
               {/* Botones de acción */}
