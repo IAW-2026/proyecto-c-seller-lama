@@ -25,6 +25,7 @@ interface AdminDashboardClientProps {
 }
 
 type TabType = 'vendedores' | 'productos' | 'ordenes';
+type ExportFormat = 'csv' | 'pdf';
 
 export function AdminDashboardClient({
   stats,
@@ -33,6 +34,7 @@ export function AdminDashboardClient({
   ordenesTable,
 }: AdminDashboardClientProps) {
   const [activeTab, setActiveTab] = useState<TabType>('vendedores');
+  const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
 
   // Sync with URL hash
   useEffect(() => {
@@ -53,6 +55,26 @@ export function AdminDashboardClient({
   const changeTab = (tab: TabType) => {
     setActiveTab(tab);
     window.location.hash = tab;
+  };
+
+  const downloadReport = (format: ExportFormat) => {
+    setExportingFormat(format);
+
+    const url = new URL('/api/admin/report', window.location.origin);
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.forEach((value, key) => {
+      url.searchParams.set(key, value);
+    });
+    url.searchParams.set('format', format);
+
+    const link = document.createElement('a');
+    link.href = url.toString();
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    window.setTimeout(() => setExportingFormat(null), 900);
   };
 
   const metricCards: MetricCard[] = [
@@ -202,6 +224,61 @@ export function AdminDashboardClient({
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Export controls */}
+      <div className="mb-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-[#d8cfbd]/60 bg-[#faf7f0]/80 px-5 py-4 shadow-[0_4px_20px_rgba(111,127,109,0.06)]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#8fa18d]/10 flex items-center justify-center text-[#8fa18d]">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <path d="M14 2v6h6" />
+              <path d="M16 13H8" />
+              <path d="M16 17H8" />
+              <path d="M10 9H8" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.26em] font-semibold text-[#8fa18d]">
+              Reportes
+            </p>
+            <p className="text-sm font-bold text-[#37413d]">
+              Analytics administrativo
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-end">
+          <button
+            type="button"
+            onClick={() => downloadReport('csv')}
+            disabled={exportingFormat !== null}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#8fa18d]/30 bg-white/70 px-4 py-2.5 text-sm font-bold text-[#37413d] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#8fa18d]/60 hover:bg-white disabled:cursor-wait disabled:opacity-60"
+            aria-label="Exportar CSV"
+          >
+            <svg className="w-4 h-4 text-[#8fa18d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M12 15V3" />
+            </svg>
+            {exportingFormat === 'csv' ? 'CSV...' : 'CSV'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => downloadReport('pdf')}
+            disabled={exportingFormat !== null}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8fa18d] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_22px_rgba(143,161,141,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#7f927d] disabled:cursor-wait disabled:opacity-70"
+            aria-label="Exportar PDF"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M12 15V3" />
+            </svg>
+            {exportingFormat === 'pdf' ? 'PDF...' : 'PDF'}
+          </button>
+        </div>
       </div>
 
       {/* Tabs Selector */}
