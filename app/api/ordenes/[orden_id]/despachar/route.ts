@@ -8,6 +8,7 @@ import {
   callShippingApi,
   InternalApiConfigError,
   InternalApiRequestError,
+  readInternalApiErrorMessage,
 } from '@/lib/internal-api-client';
 
 type ShippingResponse = {
@@ -92,7 +93,11 @@ export async function POST(
     });
 
     if (!response.ok) {
-      return jsonError('Error en Shipping App', 502);
+      const message = await readInternalApiErrorMessage(response);
+      return jsonError(
+        `Error en Shipping App (${response.status})${message ? `: ${message}` : ''}`,
+        502
+      );
     }
 
     envioData = (await response.json()) as ShippingResponse;

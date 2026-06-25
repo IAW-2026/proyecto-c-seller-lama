@@ -5,7 +5,7 @@ type InternalApiService = 'shipping' | 'payments' | 'buyer';
 type InternalApiConfig = {
   label: string;
   baseUrlEnvVars: string[];
-  apiKeyEnvVar: string;
+  apiKeyEnvVars: string[];
 };
 
 type InternalApiRequestInit = RequestInit & {
@@ -19,17 +19,17 @@ const internalApiConfigs: Record<InternalApiService, InternalApiConfig> = {
   shipping: {
     label: 'Shipping App',
     baseUrlEnvVars: ['SHIPPING_API_URL', 'SHIPPING_APP_URL'],
-    apiKeyEnvVar: 'SHIPPING_API_KEY',
+    apiKeyEnvVars: ['SELLER_API_KEY', 'INTERNAL_API_KEY', 'SHIPPING_API_KEY'],
   },
   payments: {
     label: 'Payments App',
     baseUrlEnvVars: ['PAYMENTS_API_URL'],
-    apiKeyEnvVar: 'PAYMENTS_API_KEY',
+    apiKeyEnvVars: ['SELLER_API_KEY', 'INTERNAL_API_KEY', 'PAYMENTS_API_KEY'],
   },
   buyer: {
     label: 'Buyer App',
     baseUrlEnvVars: ['BUYER_API_URL'],
-    apiKeyEnvVar: 'BUYER_API_KEY',
+    apiKeyEnvVars: ['SELLER_API_KEY', 'INTERNAL_API_KEY', 'BUYER_API_KEY'],
   },
 };
 
@@ -65,7 +65,7 @@ const buildEndpoint = (baseUrl: string, path: string) => {
   return `${normalizeBaseUrl(baseUrl)}${normalizedPath}`;
 };
 
-const readErrorMessage = async (response: Response) => {
+export const readInternalApiErrorMessage = async (response: Response) => {
   const contentType = response.headers.get('content-type') || '';
 
   if (contentType.includes('application/json')) {
@@ -88,7 +88,7 @@ const readErrorMessage = async (response: Response) => {
 const getInternalApiConfig = (service: InternalApiService) => {
   const config = internalApiConfigs[service];
   const baseUrl = getFirstConfiguredEnv(config.baseUrlEnvVars);
-  const apiKey = process.env[config.apiKeyEnvVar]?.trim();
+  const apiKey = getFirstConfiguredEnv(config.apiKeyEnvVars);
 
   if (!baseUrl) {
     const message = `${config.baseUrlEnvVars.join(' o ')} no configurada`;
@@ -100,10 +100,10 @@ const getInternalApiConfig = (service: InternalApiService) => {
   }
 
   if (!apiKey) {
-    const message = `${config.apiKeyEnvVar} no configurada`;
+    const message = `${config.apiKeyEnvVars.join(' o ')} no configurada`;
     console.error('Internal API config missing', {
       service,
-      missing: config.apiKeyEnvVar,
+      missing: config.apiKeyEnvVars,
     });
     throw new InternalApiConfigError(message);
   }
@@ -112,7 +112,8 @@ const getInternalApiConfig = (service: InternalApiService) => {
     ...config,
     baseUrl: baseUrl.value,
     baseUrlEnvVar: baseUrl.envVar,
-    apiKey,
+    apiKey: apiKey.value,
+    apiKeyEnvVar: apiKey.envVar,
   };
 };
 
@@ -126,6 +127,14 @@ export async function callInternalApi(
   const headers = new Headers(init.headers);
 
   headers.set('x-api-key', config.apiKey);
+
+  if (
+    !headers.has('x-service-name') &&
+    (config.apiKeyEnvVar === 'SELLER_API_KEY' ||
+      config.apiKeyEnvVar === 'INTERNAL_API_KEY')
+  ) {
+    headers.set('x-service-name', 'seller');
+  }
 
   if (init.body && !headers.has('content-type')) {
     headers.set('content-type', 'application/json');
@@ -147,7 +156,7 @@ export async function callInternalApi(
     const isExpectedStatus = expectedStatuses.includes(response.status);
 
     if (!response.ok && !isExpectedStatus) {
-      const message = await readErrorMessage(response);
+      const message = await readInternalApiErrorMessage(response);
       console.error('Internal API response not ok', {
         service,
         endpoint,

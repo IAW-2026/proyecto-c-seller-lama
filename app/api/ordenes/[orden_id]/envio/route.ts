@@ -8,6 +8,7 @@ import {
   callShippingApi,
   InternalApiConfigError,
   InternalApiRequestError,
+  readInternalApiErrorMessage,
 } from '@/lib/internal-api-client';
 
 /*Endpoint para obtener los detalles de un envio */
@@ -67,7 +68,11 @@ export async function GET(
     }
 
     if (!response.ok) {
-      return jsonError('Error en Shipping App', 502);
+      const message = await readInternalApiErrorMessage(response);
+      return jsonError(
+        `Error en Shipping App (${response.status})${message ? `: ${message}` : ''}`,
+        502
+      );
     }
 
     const envioData = (await response.json()) as EnvioDetalle;

@@ -58,6 +58,8 @@ SHIPPING_API_KEY=
 PAYMENTS_API_KEY=
 CONTROL_PLANE_API_KEY=
 ANALYTICS_API_KEY=
+SELLER_API_KEY=
+INTERNAL_API_KEY=
 BUYER_API_URL=
 SHIPPING_API_URL=
 PAYMENTS_API_URL=
@@ -81,9 +83,15 @@ Las llamadas server-to-server salientes se centralizan en
 
 Helpers disponibles:
 
-- `callShippingApi(path, init)`: usa `SHIPPING_API_URL` y `SHIPPING_API_KEY`.
-- `callPaymentsApi(path, init)`: usa `PAYMENTS_API_URL` y `PAYMENTS_API_KEY`.
-- `callBuyerApi(path, init)`: usa `BUYER_API_URL` y `BUYER_API_KEY`.
+- `callShippingApi(path, init)`: usa `SHIPPING_API_URL` y una key saliente.
+- `callPaymentsApi(path, init)`: usa `PAYMENTS_API_URL` y una key saliente.
+- `callBuyerApi(path, init)`: usa `BUYER_API_URL` y una key saliente.
+
+Para llamadas salientes, Seller se identifica preferentemente con
+`SELLER_API_KEY`. Si el ecosistema usa una clave compartida, se puede usar
+`INTERNAL_API_KEY`. Como compatibilidad con el esquema anterior, cada helper
+puede caer a la key del destino (`SHIPPING_API_KEY`, `PAYMENTS_API_KEY` o
+`BUYER_API_KEY`) si no existe una key saliente de Seller configurada.
 
 El helper agrega `x-api-key` automaticamente, aplica timeout por defecto de 10
 segundos y registra errores con servicio, endpoint, status HTTP y mensaje. Nunca
