@@ -22,7 +22,7 @@ Helpers principales:
 - `requireVendedor()`: exige rol `vendedor`.
 - `requireSuperAdmin()`: exige rol `super_admin`.
 - `requireServiceApiKey(request, allowedServices)`: valida llamadas internas entre apps usando API keys internas.
-- `requireInternalApiKey(request)`: valida llamadas internas exclusivas de Control Plane usando `x-api-key`.
+- `requireInternalApiKey(request)`: valida llamadas internas exclusivas de Control Plane usando la misma estrategia de API key interna.
 - `jsonError(message, status)`: devuelve errores JSON con formato consistente.
 
 Tambien existe `lib/api-auth.ts`, que reexporta esos helpers para mantener el estilo de imports del proyecto.
@@ -58,7 +58,13 @@ SHIPPING_API_KEY=
 PAYMENTS_API_KEY=
 CONTROL_PLANE_API_KEY=
 ANALYTICS_API_KEY=
+BUYER_API_URL=
+SHIPPING_API_URL=
+PAYMENTS_API_URL=
 ```
+
+`SHIPPING_APP_URL` se mantiene como alias legacy para despliegues existentes,
+pero la variable preferida para nuevas configuraciones es `SHIPPING_API_URL`.
 
 Reglas aplicadas por `requireServiceApiKey(request, allowedServices)`:
 
@@ -67,6 +73,21 @@ Reglas aplicadas por `requireServiceApiKey(request, allowedServices)`:
 - devuelve `403` si el servicio existe, pero no esta permitido para ese endpoint;
 - devuelve `500` si falta configurar la variable de entorno del servicio indicado, o si no hay ninguna key configurada para los servicios permitidos cuando se intenta inferir el servicio;
 - compara la key recibida contra la key esperada usando hash SHA-256 y `timingSafeEqual`.
+
+## Llamadas salientes desde Seller
+
+Las llamadas server-to-server salientes se centralizan en
+`lib/internal-api-client.ts`.
+
+Helpers disponibles:
+
+- `callShippingApi(path, init)`: usa `SHIPPING_API_URL` y `SHIPPING_API_KEY`.
+- `callPaymentsApi(path, init)`: usa `PAYMENTS_API_URL` y `PAYMENTS_API_KEY`.
+- `callBuyerApi(path, init)`: usa `BUYER_API_URL` y `BUYER_API_KEY`.
+
+El helper agrega `x-api-key` automaticamente, aplica timeout por defecto de 10
+segundos y registra errores con servicio, endpoint, status HTTP y mensaje. Nunca
+registra el valor de la API key.
 
 ## Permisos por endpoint
 

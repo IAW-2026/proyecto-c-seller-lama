@@ -33,6 +33,7 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ ord
 
   const now = new Date().toISOString();
   const estadoGeneralMap: Partial<Record<EstadoEnvio, string>> = {
+    [ESTADO_ENVIO.EN_PREPARACION]: ESTADO_GENERAL.EN_PREPARACION,
     [ESTADO_ENVIO.DESPACHADO]: ESTADO_GENERAL.ENVIADA,
     [ESTADO_ENVIO.ENTREGADO]: ESTADO_GENERAL.COMPLETADA,
     [ESTADO_ENVIO.CANCELADO]: ESTADO_GENERAL.CANCELADA,

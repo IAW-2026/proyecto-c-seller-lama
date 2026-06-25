@@ -4,6 +4,11 @@ import { ESTADO_ENVIO, ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import { isNonEmptyString, jsonError } from '@/app/api/_utils';
 import { requireVendedor } from '@/lib/api-auth';
 import { getVendedorActivoOrError } from '@/lib/vendedor-status';
+import {
+  callShippingApi,
+  InternalApiConfigError,
+  InternalApiRequestError,
+} from '@/lib/internal-api-client';
 
 type ShippingResponse = {
   envio_id: string;
@@ -74,61 +79,41 @@ export async function POST(
     return jsonError('No autorizado para despachar esta orden', 403);
   }
 
-  const shippingAppUrl = process.env.SHIPPING_APP_URL;
-
-  if (!shippingAppUrl) {
-    console.error('SHIPPING_APP_URL no configurada');
-    return jsonError('SHIPPING_APP_URL no configurada', 500);
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
   let envioData: ShippingResponse;
 
   try {
-    const response = await fetch(`${shippingAppUrl}/api/envios`, {
+    const response = await callShippingApi('/api/envios', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({
         orden_id: orden.nro_orden,
         direccion_destino: orden.direccion_envio,
         vendedor_id: userId,
       }),
-      signal: controller.signal,
     });
 
     if (!response.ok) {
-      const errorBody = await response.text().catch(() => '');
-      console.error('Shipping App response not ok', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorBody,
-      });
       return jsonError('Error en Shipping App', 502);
     }
 
     envioData = (await response.json()) as ShippingResponse;
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Shipping App request failed', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      });
-    } else {
-      console.error('Shipping App request failed', { error });
+    if (error instanceof InternalApiConfigError) {
+      return jsonError(error.message, 500);
     }
+
+    if (error instanceof InternalApiRequestError) {
+      return jsonError('Error de red con Shipping App', 502);
+    }
+
+    console.error('Error inesperado al llamar Shipping App', { error });
     return jsonError('Error de red con Shipping App', 502);
-  } finally {
-    clearTimeout(timeoutId);
   }
 
   const { error: updateError } = await supabase
     .from('orden')
     .update({
       estado_envio: ESTADO_ENVIO.DESPACHADO,
+      estado_general: ESTADO_GENERAL.ENVIADA,
       codigo_seguimiento: envioData.codigo_seguimiento,
       fecha_actualizacion: new Date().toISOString(),
     })
@@ -145,6 +130,7 @@ export async function POST(
       empresa_logistica: envioData.empresa_logistica,
       codigo_seguimiento: envioData.codigo_seguimiento,
       estado: envioData.estado,
+      estado_general: ESTADO_GENERAL.ENVIADA,
       estado_envio: ESTADO_ENVIO.DESPACHADO,
     },
     { status: 200 }

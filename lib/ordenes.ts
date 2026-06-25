@@ -6,6 +6,7 @@ type DespacharOrdenResponse = {
   empresa_logistica?: string;
   codigo_seguimiento?: string;
   estado?: string;
+  estado_general?: string;
   estado_envio?: string;
 };
 

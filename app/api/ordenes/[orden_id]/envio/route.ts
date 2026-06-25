@@ -4,6 +4,11 @@ import { requireVendedor } from '@/lib/api-auth';
 import { getVendedorActivoOrError } from '@/lib/vendedor-status';
 import { supabase } from '@/lib/supabase';
 import type { EnvioDetalle } from '@/types/envio';
+import {
+  callShippingApi,
+  InternalApiConfigError,
+  InternalApiRequestError,
+} from '@/lib/internal-api-client';
 
 /*Endpoint para obtener los detalles de un envio */
 export async function GET(
@@ -48,22 +53,12 @@ export async function GET(
     return jsonError('No autorizado para ver este envio', 403);
   }
 
-  const shippingAppUrl = process.env.SHIPPING_APP_URL;
-
-  if (!shippingAppUrl) {
-    console.error('SHIPPING_APP_URL no configurada');
-    return jsonError('SHIPPING_APP_URL no configurada', 500);
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
-
   try {
-    const response = await fetch(
-      `${shippingAppUrl}/api/envios/orden/${encodeURIComponent(orden.nro_orden)}`,
+    const response = await callShippingApi(
+      `/api/envios/orden/${encodeURIComponent(orden.nro_orden)}`,
       {
         method: 'GET',
-        signal: controller.signal,
+        expectedStatuses: [404, 204],
       }
     );
 
@@ -72,12 +67,6 @@ export async function GET(
     }
 
     if (!response.ok) {
-      const errorBody = await response.text().catch(() => '');
-      console.error('Shipping App response not ok', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorBody,
-      });
       return jsonError('Error en Shipping App', 502);
     }
 
@@ -85,17 +74,15 @@ export async function GET(
 
     return NextResponse.json(envioData, { status: 200 });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Shipping App request failed', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      });
-    } else {
-      console.error('Shipping App request failed', { error });
+    if (error instanceof InternalApiConfigError) {
+      return jsonError(error.message, 500);
     }
+
+    if (error instanceof InternalApiRequestError) {
+      return jsonError('Error de red con Shipping App', 502);
+    }
+
+    console.error('Error inesperado al llamar Shipping App', { error });
     return jsonError('Error de red con Shipping App', 502);
-  } finally {
-    clearTimeout(timeoutId);
   }
 }

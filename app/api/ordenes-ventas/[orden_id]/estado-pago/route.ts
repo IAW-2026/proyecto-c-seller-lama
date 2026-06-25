@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { requireServiceApiKey } from '@/lib/api-auth';
+import { ESTADO_GENERAL, ESTADO_PAGO } from '@/types/orden';
 import {
   isEstadoPago,
   isNonEmptyString,
@@ -45,11 +46,17 @@ export async function PATCH(
   }
 
   const now = new Date().toISOString();
+  const estadoGeneralMap: Record<EstadoPago, string> = {
+    [ESTADO_PAGO.PENDIENTE]: ESTADO_GENERAL.PENDIENTE_PAGO,
+    [ESTADO_PAGO.APROBADO]: ESTADO_GENERAL.PAGADA,
+    [ESTADO_PAGO.RECHAZADO]: ESTADO_GENERAL.CANCELADA,
+  };
 
   const { data: updated, error: updateError } = await supabase
     .from('orden')
     .update({
       estado_pago: data.estado_pago,
+      estado_general: estadoGeneralMap[data.estado_pago],
       motivo: data.motivo || null,
       fecha_actualizacion: now,
     })
