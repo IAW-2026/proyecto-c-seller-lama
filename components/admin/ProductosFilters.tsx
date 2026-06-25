@@ -1,0 +1,131 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { FilterBar } from '@/components/ui/FilterBar';
+import { SearchInput } from '@/components/ui/SearchInput';
+import { FilterSelect } from '@/components/ui/FilterSelect';
+import type { AdminDashboardFilters } from '@/types/admin-filters';
+import { buildAdminQueryString } from '@/lib/admin/admin-query';
+import { useAdminSearch } from '@/hooks/useAdminSearch';
+
+interface FilterOption {
+  label: string;
+  value: string;
+}
+
+interface ProductosFiltersProps {
+  filters: AdminDashboardFilters;
+  estadoPublicacionOptions: FilterOption[];
+  vendedorOptions: FilterOption[];
+}
+
+export function ProductosFilters({
+  filters,
+  estadoPublicacionOptions,
+  vendedorOptions,
+}: ProductosFiltersProps) {
+  const router = useRouter();
+  const { searchValue, handleChange } = useAdminSearch('productos', filters);
+
+  const clearHref = buildAdminQueryString({
+    ...filters,
+    productos: { page: 1, pageSize: filters.productos.pageSize },
+  }) + '#productos';
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const params = new URLSearchParams();
+
+    // Include the current search value
+    if (searchValue.trim()) {
+      params.set('productos_search', searchValue.trim());
+    }
+
+    formData.forEach((value, key) => {
+      if (value) params.set(key, value.toString());
+    });
+    router.push(`/admin?${params.toString()}#productos`);
+  };
+
+  return (
+    <FilterBar>
+      <form onSubmit={handleSubmit}>
+        {/* Preserve vendedores params */}
+        {filters.vendedores.search && (
+          <input type="hidden" name="vendedores_search" value={filters.vendedores.search} />
+        )}
+        {filters.vendedores.activo && (
+          <input type="hidden" name="vendedores_activo" value={filters.vendedores.activo} />
+        )}
+        {filters.vendedores.page > 1 && (
+          <input type="hidden" name="vendedores_page" value={String(filters.vendedores.page)} />
+        )}
+
+        {/* Preserve ordenes params */}
+        {filters.ordenes.search && (
+          <input type="hidden" name="ordenes_search" value={filters.ordenes.search} />
+        )}
+        {filters.ordenes.estado_pago && (
+          <input type="hidden" name="ordenes_estado_pago" value={filters.ordenes.estado_pago} />
+        )}
+        {filters.ordenes.estado_envio && (
+          <input type="hidden" name="ordenes_estado_envio" value={filters.ordenes.estado_envio} />
+        )}
+        {filters.ordenes.estado_general && (
+          <input type="hidden" name="ordenes_estado_general" value={filters.ordenes.estado_general} />
+        )}
+        {filters.ordenes.page > 1 && (
+          <input type="hidden" name="ordenes_page" value={String(filters.ordenes.page)} />
+        )}
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr_auto] xl:items-end">
+          <SearchInput
+            name="productos_search"
+            label="Búsqueda"
+            placeholder="Buscar por título de producto"
+            value={searchValue}
+            onChange={handleChange}
+          />
+
+          <FilterSelect
+            name="productos_vendedor"
+            label="Vendedor"
+            options={vendedorOptions}
+            defaultValue={filters.productos.vendedor || 'todos'}
+          />
+
+          <FilterSelect
+            name="productos_estado_publicacion"
+            label="Publicación"
+            options={estadoPublicacionOptions}
+            defaultValue={filters.productos.estado_publicacion || 'todos'}
+          />
+
+          <div className="flex flex-col gap-2 text-sm font-semibold text-[#37413d]">
+            <span>Acciones</span>
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                className="flex h-12 flex-1 items-center justify-center rounded-xl border border-[#8fa18d] bg-[#8fa18d] px-6 text-sm font-semibold text-white transition hover:bg-[#7e937c]"
+              >
+                Aplicar
+              </button>
+              <Link
+                href={clearHref}
+                onClick={(e) => {
+                  const form = e.currentTarget.closest('form');
+                  if (form) form.reset();
+                }}
+                className="flex h-12 flex-1 items-center justify-center rounded-xl border border-[#d8cfbd] bg-white px-6 text-sm font-semibold text-[#37413d] transition hover:bg-[#ede6d8]"
+              >
+                Limpiar
+              </Link>
+            </div>
+          </div>
+        </div>
+      </form>
+    </FilterBar>
+  );
+}
